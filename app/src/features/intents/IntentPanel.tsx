@@ -24,10 +24,11 @@ import {
 import { todayISO } from '@/lib/date'
 import {
   buildCampusQuery,
+  CAMPUS_MATCH_LABELS,
   DEFAULT_SEARCH_ENGINE,
-  filterCampusSites,
   findEngine,
   isSearchableKeyword,
+  rankCampusSites,
   SEARCH_ENGINES,
 } from '@/lib/jobSearch'
 import { parseJobPageText, pickUrlFromText } from '@/lib/clipboardJob'
@@ -48,9 +49,6 @@ const ENGINE_KEY = 'af-search-engine'
 
 const inputClass =
   'h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-base text-ink-900 placeholder:text-ink-600 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/15 sm:text-sm'
-
-const chipClass =
-  'inline-flex h-8 items-center gap-1 rounded-full border border-ink-200 bg-white px-2.5 text-xs text-ink-700 transition hover:border-brand-300 hover:text-brand-800'
 
 function openTab(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -146,14 +144,21 @@ export function IntentPanel({
   }
 
   function handleSearch() {
+    // 有命中就直接进官网：用户的目的是「点进去」，不是「看搜索结果」
+    const top = matches[0]
+    if (top) {
+      openTab(top.url)
+      setNotice(`已打开${top.name}校招官网：${top.host}`)
+      return
+    }
     if (!isSearchableKeyword(keyword)) {
-      setNotice('输入企业名或岗位关键词（至少 2 个字），如「腾讯」「数据分析 实习」')
+      setNotice('输入企业名（至少 2 个字），如「腾讯」「华为」「大疆」；没有内置直达会自动用搜索引擎')
       return
     }
     const engine = findEngine(engineKey) ?? SEARCH_ENGINES[0]
     const query = buildCampusQuery(keyword)
     openTab(engine.build(query))
-    setNotice(`已在新标签用${engine.label}搜「${query}」`)
+    setNotice(`内置清单里没有对得上的，已用${engine.label}搜「${query}」`)
   }
 
   /** 服务端抓取：把公司 / 岗位 / 岗位要求直接填进下面的表单 */
@@ -304,7 +309,9 @@ export function IntentPanel({
   const analyzing = busy === 'analyze'
   const scraping = busy === 'scrape'
   const jdTooShort = jd.trim().length < MIN_JD_LENGTH
-  const campusSites = filterCampusSites(keyword)
+  // 按匹配度排好的直达候选：第一条就是回车要进的那家
+  const matches = rankCampusSites(keyword, 6)
+  const hasKeyword = keyword.trim().length > 0
 
   return (
     <Modal
@@ -391,9 +398,9 @@ export function IntentPanel({
                     handleSearch()
                   }
                 }}
-                placeholder="企业名或岗位，如：腾讯 / 数据分析 实习"
+                placeholder="企业名，如：腾讯 / 华为 / 大疆"
                 className={inputClass}
-                aria-label="企业名或岗位关键词"
+                aria-label="企业名"
                 maxLength={60}
               />
               <button
@@ -402,12 +409,54 @@ export function IntentPanel({
                 className="inline-flex h-10 shrink-0 items-center gap-1 rounded-lg bg-brand-800 px-3.5 text-sm font-medium text-page transition hover:bg-brand-700"
               >
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                搜官网
+                {hasKeyword && matches.length > 0 ? `进${matches[0].name}` : '搜官网'}
               </button>
             </div>
 
+            {/* 匹配度排序的直达清单：点哪条进哪条，回车进第一条 */}
+            {matches.length > 0 ? (
+              <ul className="mt-2 divide-y divide-ink-100 overflow-hidden rounded-lg border border-ink-200 bg-white">
+                {matches.map((site, index) => (
+                  <li key={site.name}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openTab(site.url)
+                        setNotice(`已打开${site.name}校招官网：${site.host}`)
+                      }}
+                      title={`打开 ${site.url}`}
+                      className="flex w-full items-center gap-2 px-2.5 py-2 text-left transition hover:bg-brand-50"
+                    >
+                      <span className="w-4 shrink-0 text-[11px] tabular-nums text-ink-400">
+                        {index + 1}
+                      </span>
+                      <span className="shrink-0 text-sm text-ink-900">{site.name}</span>
+                      <span className="truncate text-xs text-ink-600">{site.host}</span>
+                      {site.match && (
+                        <span className="ml-auto shrink-0 rounded-full bg-gilt-100 px-1.5 py-0.5 text-[10px] text-ink-700">
+                          {CAMPUS_MATCH_LABELS[site.match]}
+                        </span>
+                      )}
+                      <ArrowUpRight
+                        className={`h-3.5 w-3.5 shrink-0 text-ink-400 ${site.match ? '' : 'ml-auto'}`}
+                        aria-hidden
+                      />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 rounded-lg bg-ink-50/70 px-2.5 py-2 text-xs leading-relaxed text-ink-700">
+                {hasKeyword
+                  ? '内置清单里没有这家企业 —— 用下面的引擎搜，或直接把岗位页网址粘到下一栏。'
+                  : '输入企业名，命中就直接进它的校招官网（点哪条进哪条，回车进第一条）。'}
+              </p>
+            )}
+
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-ink-600">引擎</span>
+              <span className="text-xs text-ink-600">
+                {hasKeyword && matches.length > 0 ? '都不对就' : '引擎'}
+              </span>
               {SEARCH_ENGINES.map((engine) => (
                 <button
                   key={engine.key}
@@ -424,31 +473,6 @@ export function IntentPanel({
                 </button>
               ))}
               <span className="ml-1 text-xs text-ink-600">查询会自动带上「校园招聘 官网」</span>
-            </div>
-
-            <div className="mt-3">
-              <div className="mb-1.5 flex items-center justify-between gap-2">
-                <span className="text-xs text-ink-600">常用校招官网</span>
-                <span className="text-[11px] text-ink-600">输入企业名可筛</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {campusSites.map((site) => (
-                  <button
-                    key={site.name}
-                    type="button"
-                    onClick={() => openTab(site.url)}
-                    className={chipClass}
-                  >
-                    {site.name}
-                    <ArrowUpRight className="h-3 w-3" aria-hidden />
-                  </button>
-                ))}
-                {campusSites.length === 0 && (
-                  <span className="text-xs text-ink-600">
-                    没有内置这家企业，用上面的「搜官网」即可
-                  </span>
-                )}
-              </div>
             </div>
           </section>
 
@@ -510,6 +534,11 @@ export function IntentPanel({
                   「加载解压的扩展 / 加载已解压的扩展程序」选这个目录
                 </li>
                 <li>回到岗位页，点工具栏的 ApplyFolio 图标（Edge 没显示就先点拼图图标把它固定上）→「收录到 ApplyFolio」</li>
+                <li>
+                  内置的 32 家校招站进页面就自动出卡片；其它站点用图标 / 快捷键{' '}
+                  <code className="rounded bg-white px-1">Alt+Shift+A</code> / 右键菜单，或在扩展的「设置」里打开
+                  「全站自动」，之后任何站点都自动出现
+                </li>
               </ol>
             </details>
           </section>

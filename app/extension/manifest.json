@@ -1,21 +1,30 @@
 {
   "manifest_version": 3,
   "name": "ApplyFolio 收录助手",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "在校园招聘官网的岗位页点一下，把公司、岗位、岗位要求与网址直接收进 ApplyFolio。",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "contextMenus"],
+  "optional_host_permissions": ["*://*/*"],
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "收录这个岗位到 ApplyFolio",
     "default_icon": { "192": "icons/icon-192.png" }
   },
   "icons": { "192": "icons/icon-192.png", "512": "icons/icon-512.png" },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+A" },
+      "description": "收录当前页的岗位"
+    }
+  },
   "content_scripts": [
     {
       "matches": [
         "https://join.qq.com/*",
         "https://jobs.bytedance.com/*",
         "https://talent.alibaba.com/*",
+        "https://talent.antgroup.com/*",
         "https://career.huawei.com/*",
         "https://zhaopin.meituan.com/*",
         "https://campus.jd.com/*",
@@ -24,7 +33,26 @@
         "https://careers.pinduoduo.com/*",
         "https://hr.xiaomi.com/*",
         "https://zhaopin.kuaishou.cn/*",
-        "https://jobs.bilibili.com/*"
+        "https://jobs.bilibili.com/*",
+        "https://campus.didiglobal.com/*",
+        "https://campus.ctrip.com/*",
+        "https://campus.nio.com/*",
+        "https://we.dji.com/*",
+        "https://jobs.mihoyo.com/*",
+        "https://careers.oppo.com/*",
+        "https://hr.vivo.com/*",
+        "https://career.honor.com/*",
+        "https://talent.lenovo.com.cn/*",
+        "https://campus.iflytek.com/*",
+        "https://hr.360.cn/*",
+        "https://campus.ke.com/*",
+        "https://careers.shein.com/*",
+        "https://job.byd.com/*",
+        "https://job.10086.cn/*",
+        "https://job.icbc.com.cn/*",
+        "https://job.ccb.com/*",
+        "https://career.cmbchina.com/*",
+        "https://talent.pingan.com/*"
       ],
       "js": ["sites.js", "extract.js", "encode.js", "panel.js"],
       "run_at": "document_idle"

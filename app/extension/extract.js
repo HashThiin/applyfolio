@@ -147,6 +147,23 @@
     return sites[bare] || null
   }
 
+  /** 子域名里纯属功能的那些前缀：careers.pinduoduo.com 的 company 是 pinduoduo */
+  const SITE_PREFIX = /^(www|m|jobs|job|job2|career|careers|campus|talent|hr|zhaopin|recruit|recruitment|join|we|app)\./
+
+  /**
+   * 没有站点规则时给个像样的站名：去掉功能前缀和公共后缀，
+   * 如 careers.pinduoduo.com → pinduoduo、talent.lenovo.com.cn → lenovo。
+   * 只用于标题拆分和卡片上角标，不当公司名（英文域名拼不出中文公司名）。
+   */
+  function hostLabel(host) {
+    const bare = String(host || '')
+      .replace(SITE_PREFIX, '')
+      .replace(/\.(com|net|org|gov|edu|co|io|me|info)(\.(cn|hk|tw|jp|sg|uk))?$/i, '')
+      .replace(/\.(cn|hk|tw|jp|sg|uk)$/i, '')
+    const parts = bare.split('.').filter(Boolean)
+    return parts.length ? parts[parts.length - 1] : ''
+  }
+
   function extractJob(doc, url) {
     const href = url || (doc.location ? doc.location.href : '')
     let host = ''
@@ -156,6 +173,8 @@
       host = ''
     }
     const rule = siteRuleFor(host)
+    const label = hostLabel(host)
+    const siteName = (rule && rule.name) || label || host
 
     const ld = fromJsonLd(doc)
     let company = (ld && ld.company) || (rule && rule.company) || metaContent(doc, 'og:site_name')
@@ -171,7 +190,7 @@
     }
 
     if (!role) {
-      role = splitTitle(metaContent(doc, 'og:title') || doc.title, rule && rule.name, company)
+      role = splitTitle(metaContent(doc, 'og:title') || doc.title, siteName, company)
       if (role) source = source || 'title'
     }
     if (!company) company = oneLine(metaContent(doc, 'author') || '')
@@ -187,9 +206,9 @@
       jdText: jdText.slice(0, MAX_JD),
       url: href,
       source: source || 'block',
-      siteName: (rule && rule.name) || host,
+      siteName,
     }
   }
 
-  globalThis.AF_EXTRACT = { extractJob, tidy, oneLine, splitTitle, largestBlock }
+  globalThis.AF_EXTRACT = { extractJob, tidy, oneLine, splitTitle, largestBlock, hostLabel }
 })()

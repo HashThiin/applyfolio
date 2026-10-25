@@ -1,0 +1,138 @@
+/* 设置页：纸张底色 + 墨绿 + 描金，跟应用里一致 */
+:root {
+  --ink: #242e26;
+  --ink-soft: #60685e;
+  --brand: #244c40;
+  --brand-dark: #1b3d33;
+  --gilt: #cab990;
+  --line: #ddddd2;
+  --paper: #fffef9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px 20px 56px;
+  background: #f4f1e8;
+  color: var(--ink);
+  font: 14px/1.7 "Songti SC", "STSong", Georgia, "Microsoft YaHei", sans-serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 32px 32px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(36, 46, 38, 0.08);
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+}
+
+h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--brand);
+}
+
+p {
+  margin: 0 0 8px;
+}
+
+section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(221, 221, 210, 0.7);
+}
+
+.lead {
+  color: var(--ink-soft);
+}
+
+.wrap {
+  line-height: 1.9;
+}
+
+.hint {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+code,
+kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  font: 12px/1.4 Consolas, "Courier New", monospace;
+  color: var(--ink);
+}
+
+.switch {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.switch div {
+  flex: 1;
+}
+
+.switch p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+#toggle {
+  flex: 0 0 auto;
+  min-width: 84px;
+  padding: 9px 16px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#toggle:hover {
+  background: var(--brand-dark);
+}
+
+#toggle[data-on="1"] {
+  background: #fff;
+  color: var(--brand);
+  border-color: var(--gilt);
+}
+
+.state {
+  min-height: 20px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.state[data-tone="bad"] {
+  color: #9c3b2e;
+}

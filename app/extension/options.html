@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ApplyFolio 收录助手 · 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>ApplyFolio 收录助手</h1>
+      <p class="lead">
+        在岗位详情页出一个小卡片，把公司、岗位、岗位要求收进 ApplyFolio。数据只在本机页面里提取，经地址栏的
+        <code>#import=</code> 交给应用，不经过任何服务器。
+      </p>
+
+      <section>
+        <h2>内置站点：进页面就自动出卡片</h2>
+        <p class="wrap">
+          腾讯 · 字节跳动 · 阿里巴巴 · 蚂蚁集团 · 华为 · 美团 · 京东 · 网易 · 百度 · 拼多多 · 小米 · 快手 ·
+          哔哩哔哩 · 滴滴 · 携程 · 蔚来 · 大疆 · 米哈游 · OPPO · vivo · 荣耀 · 联想 · 科大讯飞 · 360 · 贝壳 ·
+          SHEIN · 比亚迪 · 中国移动 · 工商银行 · 建设银行 · 招商银行 · 平安
+        </p>
+        <p class="hint">这 32 家不需要任何授权。</p>
+      </section>
+
+      <section>
+        <h2>其它站点：一次操作就出卡片</h2>
+        <ul>
+          <li>点工具栏里的扩展图标（Edge 没显示的话，先在拼图菜单里把它固定住）；</li>
+          <li>按 <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd>；</li>
+          <li>在页面上右键 →「收录这个岗位到 ApplyFolio」。</li>
+        </ul>
+        <p class="hint">
+          快捷键可在扩展管理页的「键盘快捷键」里改，搜索 ApplyFolio 即可。
+        </p>
+      </section>
+
+      <section class="switch">
+        <div>
+          <h2>全站自动</h2>
+          <p>
+            授权后，任何站点（不只上面 32 家）的岗位页都会自动出卡片，不用再点图标。代价是扩展要申请
+            「读取和更改你在所访问网站上的数据」——只用来读当前页的公司 / 岗位 / 岗位要求，不用来干别的，随时可以关掉。
+          </p>
+        </div>
+        <button id="toggle" type="button" aria-pressed="false">开启</button>
+      </section>
+      <p id="state" class="state" role="status"></p>
+
+      <section>
+        <h2>卡片不出现时</h2>
+        <ul>
+          <li><code>edge://</code>、<code>chrome://</code>、扩展商店、PDF 阅读器这类页面不允许注入。</li>
+          <li>Edge 的「增强安全模式」设为「严格」会禁用未验证站点的扩展，调到「平衡」或把站点加进例外。</li>
+          <li>刚改过扩展文件的话，到扩展管理页点一下「重新加载」。</li>
+        </ul>
+      </section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

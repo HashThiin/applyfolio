@@ -99,6 +99,12 @@
   const statusEl = el('div', { class: 'status', role: 'status' })
   const primary = el('button', { class: 'primary', type: 'button', text: '收录到 ApplyFolio' })
   const copyButton = el('button', { class: 'ghost', type: 'button', title: '复制 JSON，便于排查', text: '复制' })
+  const settingsButton = el('button', {
+    class: 'ghost',
+    type: 'button',
+    title: '扩展设置：让卡片在内置 32 家之外的站点也自动出现',
+    text: '设置',
+  })
 
   const siteEl = el('span', { class: 'site', text: job.siteName ? `· ${job.siteName}` : '' })
   const closeButton = el('button', { class: 'close', type: 'button', title: '关闭', text: '×' })
@@ -116,7 +122,7 @@
         jdInput,
         el('div', { class: 'meta' }, [countEl, sourceEl]),
       ]),
-      el('div', { class: 'foot' }, [primary, copyButton]),
+      el('div', { class: 'foot' }, [primary, copyButton, settingsButton]),
       statusEl,
     ]),
   ])
@@ -183,8 +189,26 @@
     }
   }
 
+  /** 内容脚本调不了 permissions，交给 background 打开设置页 */
+  function openSettings() {
+    const fallback = () => setStatus('请在扩展管理页打开「扩展程序选项」', 'bad')
+    try {
+      const task = chrome.runtime.sendMessage({ type: 'af:open-options' })
+      if (task && typeof task.catch === 'function') {
+        task.catch((error) => {
+          fallback()
+          console.warn('[ApplyFolio] 打开设置页失败', error)
+        })
+      }
+    } catch (error) {
+      fallback()
+      console.warn('[ApplyFolio] 打开设置页失败', error)
+    }
+  }
+
   primary.addEventListener('click', () => void collect())
   copyButton.addEventListener('click', () => void copyJson())
+  settingsButton.addEventListener('click', openSettings)
   closeButton.addEventListener('click', closeCard)
 
   document.documentElement.appendChild(host)
