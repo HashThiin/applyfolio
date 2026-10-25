@@ -505,10 +505,11 @@ export function IntentPanel({
                   打开仓库里的 <code className="rounded bg-white px-1">app/extension</code> 目录
                 </li>
                 <li>
-                  <code className="rounded bg-white px-1">chrome://extensions</code> → 打开「开发者模式」→
-                  「加载已解压的扩展程序」选这个目录
+                  地址栏进扩展页：Edge 用 <code className="rounded bg-white px-1">edge://extensions</code>，Chrome
+                  用 <code className="rounded bg-white px-1">chrome://extensions</code> → 打开「开发者模式」→
+                  「加载解压的扩展 / 加载已解压的扩展程序」选这个目录
                 </li>
-                <li>回到岗位页，点工具栏的 ApplyFolio 图标 →「收录到 ApplyFolio」</li>
+                <li>回到岗位页，点工具栏的 ApplyFolio 图标（Edge 没显示就先点拼图图标把它固定上）→「收录到 ApplyFolio」</li>
               </ol>
             </details>
           </section>
