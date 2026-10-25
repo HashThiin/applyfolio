@@ -1,82 +1,60 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Check, Loader2, Palette, Plus, X } from 'lucide-react'
 import { Drawer } from '@/components/Drawer'
+import { QuestionPanel } from '../questions/QuestionPanel'
 import {
-  CHANNELS,
+  PRESET_COLORS,
   STATUSES,
   type Application,
   type ApplicationInput,
-  type ApplicationStatus,
-  type Channel,
 } from '@/db/schema'
-import { isValidISODate, todayISO } from '@/lib/date'
+import { avatarTint } from '@/lib/color'
+import { todayISO } from '@/lib/date'
 import { normalizeUrl } from '@/lib/url'
+import { type Draft, type FormErrors, validateForm } from './formSchema'
 
-interface Draft {
-  company: string
-  role: string
-  url: string
-  appliedAt: string
-  status: ApplicationStatus
-  channel: Channel | ''
-  note: string
-}
-
-interface FormErrors {
-  company?: string
-  role?: string
-  url?: string
-  appliedAt?: string
+function emptyRole() {
+  return { name: '', url: '' }
 }
 
 function createEmpty(): Draft {
   return {
     company: '',
-    role: '',
-    url: '',
+    roles: [emptyRole(), emptyRole()],
     appliedAt: todayISO(),
     status: 'applied',
-    channel: '',
-    note: '',
+    color: '',
   }
 }
 
 function toDraft(record: Application): Draft {
   return {
     company: record.company,
-    role: record.role,
-    url: record.url ?? '',
-    appliedAt: record.appliedAt,
+    roles: [{ name: record.role, url: record.url ?? '' }],
+    appliedAt: record.applied_at,
     status: record.status,
-    channel: record.channel ?? '',
-    note: record.note ?? '',
+    color: record.color ?? '',
   }
 }
 
-export function validateForm(draft: Draft): FormErrors {
-  const errors: FormErrors = {}
-  if (!draft.company.trim()) errors.company = '请填写公司名称'
-  if (!draft.role.trim()) errors.role = '请填写岗位名称'
-  if (draft.url.trim() && !normalizeUrl(draft.url)) errors.url = '网址格式不正确，可留空'
-  if (!isValidISODate(draft.appliedAt)) errors.appliedAt = '请选择合法的投递日期'
-  else if (draft.appliedAt > todayISO()) errors.appliedAt = '投递日期不能晚于今天'
-  return errors
-}
-
-function toInput(draft: Draft): ApplicationInput {
-  return {
-    company: draft.company.trim(),
-    role: draft.role.trim(),
-    url: draft.url.trim() ? (normalizeUrl(draft.url) ?? undefined) : undefined,
-    appliedAt: draft.appliedAt,
-    status: draft.status,
-    channel: draft.channel || undefined,
-    note: draft.note.trim() || undefined,
-  }
+// 新增时一个非空岗位生成一条记录（各带自己的网址）；编辑时只取第一个
+function toInputs(draft: Draft): ApplicationInput[] {
+  return draft.roles
+    .map((role) => ({ name: role.name.trim(), url: role.url.trim() }))
+    .filter((role) => role.name)
+    .map((role) => ({
+      company: draft.company.trim(),
+      role: role.name,
+      url: role.url ? normalizeUrl(role.url) : null,
+      applied_at: draft.appliedAt,
+      status: draft.status,
+      channel: null,
+      color: draft.color || null,
+    }))
 }
 
 const inputClass =
-  'h-9 w-full rounded-lg border bg-white px-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100'
+  'h-11 w-full rounded-lg border bg-white px-3 text-base text-ink-900 placeholder:text-ink-600 focus:outline-none focus:ring-2 focus:ring-brand-600/15 sm:text-sm'
 
 interface FieldProps {
   label: string
@@ -89,7 +67,7 @@ interface FieldProps {
 function Field({ label, required, error, hint, children }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1 text-xs font-medium text-slate-700">
+      <span className="mb-1.5 flex items-center gap-1 text-xs font-medium text-ink-700">
         {label}
         {required && <span className="text-red-500">*</span>}
       </span>
@@ -97,7 +75,7 @@ function Field({ label, required, error, hint, children }: FieldProps) {
       {error ? (
         <span className="mt-1 block text-xs text-red-600">{error}</span>
       ) : hint ? (
-        <span className="mt-1 block text-xs text-slate-400">{hint}</span>
+        <span className="mt-1 block text-xs leading-relaxed text-ink-600">{hint}</span>
       ) : null}
     </label>
   )
@@ -107,24 +85,26 @@ interface ApplicationFormProps {
   open: boolean
   initial: Application | null
   companies: string[]
+  userId: string
   onClose: () => void
-  onSubmit: (input: ApplicationInput) => Promise<void>
+  onSubmit: (inputs: ApplicationInput[]) => Promise<void>
 }
 
 export function ApplicationForm({
   open,
   initial,
   companies,
+  userId,
   onClose,
   onSubmit,
 }: ApplicationFormProps) {
   const [draft, setDraft] = useState<Draft>(createEmpty)
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
+  const [tab, setTab] = useState<'questions' | 'edit'>('questions')
 
   const initialSnapshot = useMemo(
     () => (initial ? toDraft(initial) : null),
-    // 只在切换记录时重建，避免编辑过程中被后台刷新覆盖
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [initial?.id],
   )
@@ -133,18 +113,41 @@ export function ApplicationForm({
     if (!open) return
     setDraft(initialSnapshot ?? createEmpty())
     setErrors({})
+    setTab(initialSnapshot ? 'questions' : 'edit')
   }, [open, initialSnapshot])
 
   const dirty = useMemo(() => {
     if (!open) return false
     const base = initialSnapshot ?? createEmpty()
-    return (Object.keys(base) as (keyof Draft)[]).some((key) => draft[key] !== base[key])
+    const sameRoles =
+      draft.roles.length === base.roles.length &&
+      draft.roles.every(
+        (r, i) => r.name === base.roles[i].name && r.url === base.roles[i].url,
+      )
+    return (
+      draft.company !== base.company ||
+      draft.appliedAt !== base.appliedAt ||
+      draft.status !== base.status ||
+      draft.color !== base.color ||
+      !sameRoles
+    )
   }, [draft, initialSnapshot, open])
 
   const patch = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
+
+  const patchRole = (index: number, key: 'name' | 'url', value: string) => {
+    setDraft((prev) => {
+      const roles = prev.roles.map((role, i) => (i === index ? { ...role, [key]: value } : role))
+      return { ...prev, roles }
+    })
+    setErrors((prev) => ({ ...prev, role: undefined, url: undefined }))
+  }
+  const addRole = () => setDraft((prev) => ({ ...prev, roles: [...prev.roles, emptyRole()] }))
+  const removeRole = (index: number) =>
+    setDraft((prev) => ({ ...prev, roles: prev.roles.filter((_, i) => i !== index) }))
 
   const handleClose = () => {
     if (submitting) return
@@ -160,7 +163,7 @@ export function ApplicationForm({
 
     setSubmitting(true)
     try {
-      await onSubmit(toInput(draft))
+      await onSubmit(toInputs(draft))
     } catch (error) {
       console.error(error)
       window.alert('保存失败，请重试')
@@ -179,25 +182,69 @@ export function ApplicationForm({
       onClose={handleClose}
       footer={
         <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="h-9 rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-slate-600 transition hover:bg-slate-50"
-          >
-            取消
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {initial ? '保存修改' : '保存'}
-          </button>
+          {initial && tab === 'questions' ? (
+            <button
+              type="button"
+              onClick={handleClose}
+              className="h-11 rounded-full bg-brand-800 px-5 text-sm font-medium text-white transition hover:bg-brand-700"
+            >
+              关闭
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="h-11 rounded-full border border-ink-200 bg-white px-4 text-sm text-ink-600 transition hover:bg-ink-50"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="flex h-11 items-center gap-1.5 rounded-full bg-brand-800 px-5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {initial ? '保存修改' : '保存'}
+              </button>
+            </>
+          )}
         </div>
       }
     >
+      {initial && (
+        <div role="group" aria-label="投递详情内容" className="mb-6 flex gap-6 border-b border-ink-200">
+          <button
+            type="button"
+            onClick={() => setTab('questions')}
+            aria-pressed={tab === 'questions'}
+            className={`min-h-11 flex-1 border-b-2 px-3 text-sm font-medium transition ${
+              tab === 'questions'
+                ? 'border-brand-800 text-brand-800'
+                : 'border-transparent text-ink-600 hover:text-ink-900'
+            }`}
+          >
+            题目 / 备注
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('edit')}
+            aria-pressed={tab === 'edit'}
+            className={`min-h-11 flex-1 border-b-2 px-3 text-sm font-medium transition ${
+              tab === 'edit'
+                ? 'border-brand-800 text-brand-800'
+                : 'border-transparent text-ink-600 hover:text-ink-900'
+            }`}
+          >
+            编辑信息
+          </button>
+        </div>
+      )}
+
+      {initial && tab === 'questions' ? (
+        <QuestionPanel applicationId={initial.id} userId={userId} />
+      ) : (
       <form
         className="space-y-4"
         onSubmit={(event) => {
@@ -219,7 +266,7 @@ export function ApplicationForm({
             maxLength={60}
             autoFocus
             list="jc-company-options"
-            className={`${inputClass} ${errors.company ? 'border-red-300' : 'border-slate-200 focus:border-indigo-400'}`}
+            className={`${inputClass} ${errors.company ? 'border-red-300' : 'border-ink-200 focus:border-brand-600'}`}
           />
           <datalist id="jc-company-options">
             {companies.map((name) => (
@@ -228,59 +275,145 @@ export function ApplicationForm({
           </datalist>
         </Field>
 
-        <Field label="岗位名称" required error={errors.role}>
-          <input
-            value={draft.role}
-            onChange={(event) => patch('role', event.target.value)}
-            placeholder="如：后端开发工程师"
-            maxLength={80}
-            className={`${inputClass} ${errors.role ? 'border-red-300' : 'border-slate-200 focus:border-indigo-400'}`}
-          />
-        </Field>
-
-        <Field label="岗位网址" error={errors.url} hint="可留空；输入后自动补全 https://">
-          <input
-            value={draft.url}
-            onChange={(event) => patch('url', event.target.value)}
-            onBlur={() => {
-              const normalized = normalizeUrl(draft.url)
-              if (normalized) patch('url', normalized)
-            }}
-            placeholder="jobs.bytedance.com/..."
-            maxLength={500}
-            inputMode="url"
-            className={`${inputClass} ${errors.url ? 'border-red-300' : 'border-slate-200 focus:border-indigo-400'}`}
-          />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="投递日期" required error={errors.appliedAt}>
-            <input
-              type="date"
-              value={draft.appliedAt}
-              max={todayISO()}
-              onChange={(event) => patch('appliedAt', event.target.value)}
-              className={`${inputClass} ${errors.appliedAt ? 'border-red-300' : 'border-slate-200 focus:border-indigo-400'}`}
-            />
-          </Field>
-
-          <Field label="投递渠道">
-            <select
-              value={draft.channel}
-              onChange={(event) => patch('channel', event.target.value as Channel | '')}
-              className={`${inputClass} border-slate-200 focus:border-indigo-400`}
+        <Field
+          label="岗位与网址"
+          required
+          error={errors.role ?? errors.url}
+          hint={
+            initial
+              ? '每个岗位对应自己的招聘页网址，便于后续抓取岗位要求'
+              : '多行将分别生成多条记录；每个岗位各带自己的招聘页网址'
+          }
+        >
+          <div className="space-y-2.5">
+            {draft.roles.map((role, index) => (
+              <div key={index} className="rounded-lg border border-ink-200/80 bg-white p-2.5">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={role.name}
+                    onChange={(event) => patchRole(index, 'name', event.target.value)}
+                    placeholder={
+                      index === 0
+                        ? '如：后端开发工程师'
+                        : initial
+                          ? '追加岗位'
+                          : '其他岗位（可选）'
+                    }
+                    aria-label={`第 ${index + 1} 行岗位名称`}
+                    maxLength={80}
+                    className={`${inputClass} flex-1 ${errors.role ? 'border-red-300' : 'border-ink-200 focus:border-brand-600'}`}
+                  />
+                  {draft.roles.length > 1 && !(initial && index === 0) && (
+                    <button
+                      type="button"
+                      onClick={() => removeRole(index)}
+                      aria-label={`删除第 ${index + 1} 行岗位`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-400 transition hover:bg-ink-100 hover:text-ink-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <input
+                  value={role.url}
+                  onChange={(event) => patchRole(index, 'url', event.target.value)}
+                  onBlur={() => {
+                    const normalized = normalizeUrl(role.url)
+                    if (normalized) patchRole(index, 'url', normalized)
+                  }}
+                  placeholder="该岗位的招聘页网址（可选，自动补 https://）"
+                  aria-label={`第 ${index + 1} 行岗位网址`}
+                  maxLength={500}
+                  inputMode="url"
+                  className={`${inputClass} mt-2 ${errors.url ? 'border-red-300' : 'border-ink-200 focus:border-brand-600'}`}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addRole}
+              className="flex min-h-10 items-center gap-1 rounded-md border border-ink-200 px-3 text-xs font-medium text-ink-600 transition hover:border-brand-300 hover:text-brand-800"
             >
-              <option value="">未填写</option>
-              {CHANNELS.map((channel) => (
-                <option key={channel} value={channel}>
-                  {channel}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+              <Plus className="h-3.5 w-3.5" /> {initial ? '追加岗位' : '添加岗位'}
+            </button>
+          </div>
+        </Field>
 
-        <Field label="当前状态">
+        <Field label="投递日期" required error={errors.appliedAt}>
+          <input
+            type="date"
+            value={draft.appliedAt}
+            max={todayISO()}
+            onChange={(event) => patch('appliedAt', event.target.value)}
+            className={`${inputClass} ${errors.appliedAt ? 'border-red-300' : 'border-ink-200 focus:border-brand-600'}`}
+          />
+        </Field>
+
+        <Field label="优先级" error={errors.color} hint="与列表头像同一色阶，选中所见即列表观感">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {PRESET_COLORS.map((c) => {
+              const active = draft.color === c.value
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  title={c.label}
+                  aria-label={c.label}
+                  aria-pressed={active}
+                  onClick={() => patch('color', active ? '' : c.value)}
+                  className={`relative flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                    active ? 'scale-110 shadow-sm ring-2 ring-offset-2' : 'hover:scale-105'
+                  }`}
+                  style={{
+                    backgroundColor: avatarTint(c.value),
+                    borderColor: c.value,
+                    ...(active ? { ['--tw-ring-color' as string]: c.value } : {}),
+                  }}
+                >
+                  {active && <Check className="h-4 w-4 text-ink-900" />}
+                </button>
+              )
+            })}
+            {/* 自定义取色器 */}
+            <label
+              className="relative flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-dashed border-ink-300 text-ink-500 transition hover:border-ink-400 hover:text-ink-600"
+              title="自定义颜色"
+            >
+              <Palette className="h-4 w-4" />
+              <input
+                type="color"
+                value={/^#[0-9a-fA-F]{6}$/.test(draft.color) ? draft.color : '#315b4c'}
+                onChange={(event) => patch('color', event.target.value)}
+                className="absolute inset-0 cursor-pointer opacity-0"
+                aria-label="自定义颜色"
+              />
+            </label>
+            {draft.color && (
+              <span className="ml-1 flex items-center gap-1.5 rounded-lg bg-ink-50 px-2 py-1 text-xs text-ink-700">
+                <span
+                  className="h-3 w-3 rounded-full border"
+                  style={{ backgroundColor: avatarTint(draft.color), borderColor: draft.color }}
+                />
+                <span className="font-mono">{draft.color}</span>
+                <button
+                  type="button"
+                  onClick={() => patch('color', '')}
+                  aria-label="清除颜色"
+                  className="ml-0.5 rounded p-0.5 text-ink-500 transition hover:bg-ink-200 hover:text-ink-700"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        </Field>
+
+        <Field
+          label="当前状态"
+          hint={
+            initial?.status === 'applied' ? '保存后自动推进到「初筛」' : undefined
+          }
+        >
           <div className="grid grid-cols-3 gap-1.5">
             {STATUSES.map((status) => {
               const active = draft.status === status.value
@@ -289,10 +422,11 @@ export function ApplicationForm({
                   key={status.value}
                   type="button"
                   onClick={() => patch('status', status.value)}
-                  className={`h-8 rounded-lg text-xs font-medium transition ${
+                  aria-pressed={active}
+                  className={`h-10 rounded-md text-xs font-medium transition ${
                     active
-                      ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-brand-100 text-brand-900 ring-1 ring-brand-300'
+                      : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
                   }`}
                 >
                   {status.label}
@@ -302,20 +436,10 @@ export function ApplicationForm({
           </div>
         </Field>
 
-        <Field label="备注" hint="内推码、HR 联系方式、面试时间等">
-          <textarea
-            value={draft.note}
-            onChange={(event) => patch('note', event.target.value)}
-            rows={4}
-            maxLength={500}
-            placeholder="选填"
-            className="w-full resize-y rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          />
-        </Field>
-
-        <p className="text-[11px] text-slate-400">快捷键：Ctrl / ⌘ + Enter 保存</p>
+        <p className="text-xs text-ink-600">快捷键：Ctrl / ⌘ + Enter 保存</p>
         <button type="submit" className="hidden" aria-hidden />
       </form>
+      )}
     </Drawer>
   )
 }

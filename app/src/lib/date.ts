@@ -26,8 +26,9 @@ export function formatDate(iso: string, now = new Date()): string {
   return Number(y) === now.getFullYear() ? `${m}-${d}` : `${y}-${m}-${d}`
 }
 
-/** 时间戳 → 今天 / 昨天 / N 天前 / N 个月前 */
-export function relativeDays(timestamp: number, now = Date.now()): string {
+/** 时间戳(毫秒) 或 ISO 字符串 → 今天 / 昨天 / N 天前 / N 个月前 */
+export function relativeDays(timestampOrISO: number | string, now = Date.now()): string {
+  const timestamp = typeof timestampOrISO === 'string' ? new Date(timestampOrISO).getTime() : timestampOrISO
   const startOfDay = (t: number) => {
     const d = new Date(t)
     d.setHours(0, 0, 0, 0)

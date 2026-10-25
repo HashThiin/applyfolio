@@ -9,19 +9,19 @@ import {
 } from '@/db/schema'
 
 const TONE_CLASS: Record<StatusTone, string> = {
-  blue: 'bg-blue-50 text-blue-700 ring-blue-200 hover:bg-blue-100',
-  violet: 'bg-violet-50 text-violet-700 ring-violet-200 hover:bg-violet-100',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-100',
-  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100',
-  slate: 'bg-slate-100 text-slate-600 ring-slate-200 hover:bg-slate-200',
+  blue: 'bg-lagoon/15 text-ink-700 ring-lagoon/40 hover:bg-lagoon/25',
+  violet: 'bg-plum/15 text-ink-700 ring-plum/40 hover:bg-plum/25',
+  amber: 'bg-tang/15 text-ink-700 ring-tang/40 hover:bg-tang/25',
+  emerald: 'bg-moss/15 text-ink-700 ring-moss/40 hover:bg-moss/25',
+  slate: 'bg-ink-100 text-ink-600 ring-ink-200 hover:bg-ink-200',
 }
 
 const DOT_CLASS: Record<StatusTone, string> = {
-  blue: 'bg-blue-500',
-  violet: 'bg-violet-500',
-  amber: 'bg-amber-500',
-  emerald: 'bg-emerald-500',
-  slate: 'bg-slate-400',
+  blue: 'bg-lagoon',
+  violet: 'bg-plum',
+  amber: 'bg-tang',
+  emerald: 'bg-moss',
+  slate: 'bg-ink-400',
 }
 
 interface StatusBadgeProps {
@@ -41,11 +41,21 @@ export function StatusBadge({ status, onChange }: StatusBadgeProps) {
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        containerRef.current?.querySelector('button')?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [open])
 
   const tone = STATUS_TONE[status]
-  const baseClass = `inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${TONE_CLASS[tone]}`
+  const baseClass = `inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[13px] font-medium ring-1 ring-inset ${TONE_CLASS[tone]}`
 
   if (!onChange) {
     return <span className={baseClass}>{STATUS_LABEL[status]}</span>
@@ -55,13 +65,14 @@ export function StatusBadge({ status, onChange }: StatusBadgeProps) {
     <div ref={containerRef} className="relative shrink-0">
       <button
         type="button"
+        aria-label={`当前状态：${STATUS_LABEL[status]}，点击修改`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={(event) => {
           event.stopPropagation()
           setOpen((value) => !value)
         }}
-        className={`${baseClass} cursor-pointer transition`}
+        className={`${baseClass} min-h-9 cursor-pointer px-2.5 transition sm:min-h-8`}
       >
         {STATUS_LABEL[status]}
         <ChevronDown className="h-3 w-3 opacity-60" />
@@ -70,7 +81,8 @@ export function StatusBadge({ status, onChange }: StatusBadgeProps) {
       {open && (
         <div
           role="listbox"
-          className="jc-pop-in absolute left-0 z-30 mt-1.5 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-lg shadow-slate-900/10"
+          aria-label="选择投递状态"
+          className="jc-pop-in absolute left-0 z-30 mt-1.5 w-32 overflow-hidden rounded-xl border border-ink-200 bg-white p-1 shadow-lg shadow-ink-900/10"
           onClick={(event) => event.stopPropagation()}
         >
           {STATUSES.map((item) => (
@@ -83,11 +95,11 @@ export function StatusBadge({ status, onChange }: StatusBadgeProps) {
                 onChange(item.value)
                 setOpen(false)
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-slate-700 transition hover:bg-slate-100"
+              className="flex min-h-9 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-ink-700 transition hover:bg-ink-100"
             >
               <span className={`h-1.5 w-1.5 rounded-full ${DOT_CLASS[item.tone]}`} />
               <span className="flex-1">{item.label}</span>
-              {item.value === status && <Check className="h-3 w-3 text-indigo-600" />}
+              {item.value === status && <Check className="h-3 w-3 text-brand-600" />}
             </button>
           ))}
         </div>

@@ -1,3 +1,4 @@
+
 interface StatsBarProps {
   total: number
   active: number
@@ -5,34 +6,19 @@ interface StatsBarProps {
   rejected: number
 }
 
-const CARDS = [
-  { key: 'total', label: '总投递', accent: 'text-slate-900' },
-  { key: 'active', label: '进行中', accent: 'text-indigo-600' },
-  { key: 'offers', label: '已 Offer', accent: 'text-emerald-600' },
-  { key: 'rejected', label: '已挂 / 放弃', accent: 'text-slate-500' },
-] as const
-
+/**
+ * 报头统计：三枚罗盘奖章承载主要计数（总投递 / 进行中 / Offer），
+ * 已结束以低权重尾注呈现，避免奖章过多冲淡层次。
+ */
 export function StatsBar({ total, active, offers, rejected }: StatsBarProps) {
-  const values: Record<(typeof CARDS)[number]['key'], number> = {
-    total,
-    active,
-    offers,
-    rejected,
-  }
-
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-      {CARDS.map((card) => (
-        <div
-          key={card.key}
-          className="rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm shadow-slate-900/[0.02]"
-        >
-          <div className={`text-2xl font-semibold tabular-nums ${card.accent}`}>
-            {values[card.key]}
-          </div>
-          <div className="mt-0.5 text-xs text-slate-500">{card.label}</div>
-        </div>
-      ))}
+    <div className="jc-stats" role="status" aria-label="投递统计">
+      <dl className="flex gap-7">
+        <div className="jc-stats-item"><dt>总投递</dt><dd>{total}</dd></div>
+        <div className="jc-stats-item"><dt>进行中</dt><dd>{active}</dd></div>
+        <div className="jc-stats-item"><dt>Offer</dt><dd>{offers}</dd></div>
+      </dl>
+      <p className="jc-stats-ended">已结束 {rejected}</p>
     </div>
   )
 }

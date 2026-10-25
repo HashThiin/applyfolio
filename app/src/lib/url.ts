@@ -15,7 +15,7 @@ export function normalizeUrl(input: string): string | null {
 }
 
 /** 提取用于展示的域名，如 jobs.bytedance.com */
-export function hostOf(url?: string): string {
+export function hostOf(url?: string | null): string {
   if (!url) return ''
   try {
     return new URL(url).hostname.replace(/^www\./, '')

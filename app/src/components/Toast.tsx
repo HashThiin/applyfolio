@@ -16,8 +16,8 @@ export function Toast({ toast, onDismiss }: ToastProps) {
   if (!toast) return null
 
   return createPortal(
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
-      <div className="jc-pop-in pointer-events-auto flex max-w-md items-center gap-3 rounded-xl bg-slate-900 px-4 py-2.5 text-sm text-white shadow-xl shadow-slate-900/20">
+    <div role="status" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex justify-center px-4">
+      <div className="jc-pop-in pointer-events-auto flex max-w-md items-center gap-3 rounded-xl bg-ink-900 px-4 py-2.5 text-sm text-white shadow-xl shadow-ink-900/20">
         <span className="flex-1">{toast.message}</span>
         {toast.actionLabel && toast.onAction && (
           <button
@@ -35,7 +35,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
           type="button"
           onClick={onDismiss}
           aria-label="关闭提示"
-          className="shrink-0 rounded p-0.5 text-slate-400 transition hover:text-white"
+          className="shrink-0 rounded p-0.5 text-ink-400 transition hover:text-white"
         >
           <X className="h-3.5 w-3.5" />
         </button>
