@@ -1,0 +1,554 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-24T19:14:10.424Z",
+  "title": "Design System: JobCompass",
+  "extensions": {
+    "colorMeta": {
+      "brand-50": {
+        "role": "primary",
+        "displayName": "松针深青 brand-50",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-100": {
+        "role": "primary",
+        "displayName": "松针深青 brand-100",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-200": {
+        "role": "primary",
+        "displayName": "松针深青 brand-200",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-600": {
+        "role": "primary",
+        "displayName": "松针深青 brand-600",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-700": {
+        "role": "primary",
+        "displayName": "松针深青 brand-700",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-800": {
+        "role": "primary",
+        "displayName": "松针深青 brand-800",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "brand-900": {
+        "role": "primary",
+        "displayName": "松针深青 brand-900",
+        "tonalRamp": [
+          "#1b3d33",
+          "#244c40",
+          "#315b4c",
+          "#3d6857",
+          "#739986",
+          "#9ab8a5",
+          "#e1eae1",
+          "#f0f4ef"
+        ]
+      },
+      "ink-100": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-100",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-200": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-200",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-300": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-300",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-400": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-400",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-500": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-500",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-600": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-600",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-700": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-700",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "ink-900": {
+        "role": "neutral",
+        "displayName": "暖墨 ink-900",
+        "tonalRamp": [
+          "#242e26",
+          "#343d33",
+          "#4a5349",
+          "#60685e",
+          "#8e9488",
+          "#bdbfb3",
+          "#efeee7",
+          "#f8f7f2"
+        ]
+      },
+      "gilt-100": {
+        "role": "secondary",
+        "displayName": "细金线 gilt-100",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "gilt-200": {
+        "role": "secondary",
+        "displayName": "细金线 gilt-200",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "gilt-300": {
+        "role": "secondary",
+        "displayName": "细金线 gilt-300",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "gilt-400": {
+        "role": "secondary",
+        "displayName": "细金线 gilt-400",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "gilt-600": {
+        "role": "secondary",
+        "displayName": "细金线 gilt-600",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "tang": {
+        "role": "tertiary",
+        "displayName": "tang",
+        "tonalRamp": [
+          "oklch(15% 0.01 80)",
+          "oklch(27% 0.025 80)",
+          "oklch(39% 0.04 80)",
+          "oklch(51% 0.05 80)",
+          "oklch(63% 0.05 80)",
+          "oklch(75% 0.04 80)",
+          "oklch(87% 0.02 80)",
+          "oklch(95% 0.005 80)"
+        ]
+      },
+      "moss": {
+        "role": "tertiary",
+        "displayName": "moss",
+        "tonalRamp": [
+          "oklch(15% 0.01 140)",
+          "oklch(27% 0.025 140)",
+          "oklch(39% 0.04 140)",
+          "oklch(51% 0.05 140)",
+          "oklch(63% 0.05 140)",
+          "oklch(75% 0.04 140)",
+          "oklch(87% 0.02 140)",
+          "oklch(95% 0.005 140)"
+        ]
+      },
+      "lagoon": {
+        "role": "tertiary",
+        "displayName": "lagoon",
+        "tonalRamp": [
+          "oklch(15% 0.01 215)",
+          "oklch(27% 0.025 215)",
+          "oklch(39% 0.04 215)",
+          "oklch(51% 0.05 215)",
+          "oklch(63% 0.05 215)",
+          "oklch(75% 0.04 215)",
+          "oklch(87% 0.02 215)",
+          "oklch(95% 0.005 215)"
+        ]
+      },
+      "plum": {
+        "role": "tertiary",
+        "displayName": "plum",
+        "tonalRamp": [
+          "oklch(15% 0.01 310)",
+          "oklch(27% 0.025 310)",
+          "oklch(39% 0.04 310)",
+          "oklch(51% 0.05 310)",
+          "oklch(63% 0.05 310)",
+          "oklch(75% 0.04 310)",
+          "oklch(87% 0.02 310)",
+          "oklch(95% 0.005 310)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "paper",
+        "tonalRamp": [
+          "oklch(15% 0.01 85)",
+          "oklch(27% 0.025 85)",
+          "oklch(39% 0.04 85)",
+          "oklch(51% 0.05 85)",
+          "oklch(63% 0.05 85)",
+          "oklch(75% 0.04 85)",
+          "oklch(87% 0.02 85)",
+          "oklch(95% 0.005 85)"
+        ]
+      },
+      "page": {
+        "role": "neutral",
+        "displayName": "page",
+        "tonalRamp": [
+          "oklch(15% 0.01 90)",
+          "oklch(27% 0.025 90)",
+          "oklch(39% 0.04 90)",
+          "oklch(51% 0.05 90)",
+          "oklch(63% 0.05 90)",
+          "oklch(75% 0.04 90)",
+          "oklch(87% 0.02 90)",
+          "oklch(95% 0.005 90)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "display",
+        "purpose": "JobCompass 字标。"
+      },
+      "headline": {
+        "displayName": "headline",
+        "purpose": "书页主标题；响应式差异见 Typography。"
+      },
+      "title": {
+        "displayName": "title",
+        "purpose": "抽屉标题。"
+      },
+      "body": {
+        "displayName": "body",
+        "purpose": "记录与界面正文。"
+      },
+      "label": {
+        "displayName": "label",
+        "purpose": "筛选与状态。"
+      },
+      "caption": {
+        "displayName": "caption",
+        "purpose": "辅助说明。"
+      },
+      "stat": {
+        "displayName": "stat",
+        "purpose": "欢迎统计。"
+      }
+    },
+    "motion": [
+      {
+        "name": "state-color",
+        "value": "160ms",
+        "purpose": "主按钮与账号背景变化。"
+      },
+      {
+        "name": "drawer-enter",
+        "value": "220ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "从 translateX(24px)、透明进入。"
+      },
+      {
+        "name": "pop-enter",
+        "value": "200ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "从 translateY(10px) scale(.98)、透明进入。"
+      },
+      {
+        "name": "fade-collapse",
+        "value": "180ms ease-out",
+        "purpose": "淡入；折叠从 translateY(-4px) 进入。"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "减少动态偏好；命名进入动画关闭。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "row-status-reset-max",
+        "value": "360px"
+      },
+      {
+        "name": "welcome-profile-stack-max",
+        "value": "599px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "workspace-compact-max",
+        "value": "767px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "auth-stack-max",
+        "value": "899px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "深青主按钮",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "新增、提交和主要进入动作。",
+      "html": "<button class=\"ds-primary\" type=\"button\">添加投递</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border:1px solid var(--color-brand-800,#244c40);border-radius:6px;background:var(--color-brand-800,#244c40);color:var(--color-page,#fffef9);font-size:14px;font-weight:500;font-family:\"PingFang SC\", \"Microsoft YaHei\", \"Helvetica Neue\", ui-sans-serif, system-ui, sans-serif;transition:background-color 160ms,border-color 160ms}.ds-primary:hover{background:var(--color-brand-700,#315b4c);border-color:var(--color-brand-700,#315b4c)}.ds-primary:disabled{cursor:wait;opacity:.65}@media(max-width:767px){.ds-primary{padding-inline:16px}} .ds-primary:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "轻图标动作",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "记录中的复制等普通动作。",
+      "html": "<button class=\"ds-ghost\" type=\"button\" aria-label=\"复制链接\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\"/><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"/></svg></button>",
+      "css": ".ds-ghost{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:var(--color-ink-500,#6a7167);transition:background-color 150ms,color 150ms}.ds-ghost:hover{background:var(--color-ink-100,#efeee7);color:var(--color-brand-700,#315b4c)}@media(min-width:640px){.ds-ghost{width:32px;height:32px}} .ds-ghost:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "搜索框",
+      "kind": "input",
+      "refersTo": "search-input",
+      "description": "窄屏 16px、sm 起 14px。",
+      "html": "<input class=\"ds-search\" type=\"search\" aria-label=\"搜索公司或岗位\" placeholder=\"搜索公司、岗位\"/>",
+      "css": ".ds-search{width:100%;height:44px;padding:0 44px 0 36px;border:1px solid var(--color-ink-200,#ddddd2);border-radius:8px;background:rgb(255 255 255 / .8);color:var(--color-ink-900,#242e26);font-size:16px;font-family:\"PingFang SC\", \"Microsoft YaHei\", \"Helvetica Neue\", ui-sans-serif, system-ui, sans-serif;}.ds-search::placeholder{color:var(--color-ink-600,#60685e);opacity:1}.ds-search:focus{border-color:var(--color-brand-600,#3d6857);outline:none;box-shadow:0 0 0 2px rgb(61 104 87 / .15)}.ds-search::-webkit-search-cancel-button{appearance:none}@media(min-width:640px){.ds-search{font-size:14px}} .ds-search:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "选中筛选",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "状态多选筛选，aria-pressed 提供选中语义。",
+      "html": "<button class=\"ds-chip-selected\" type=\"button\" aria-pressed=\"true\">全部 <span>12</span></button>",
+      "css": ".ds-chip-selected{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border:0;border-radius:6px;font-size:13px;font-weight:500;font-family:\"PingFang SC\", \"Microsoft YaHei\", \"Helvetica Neue\", ui-sans-serif, system-ui, sans-serif;background:var(--color-brand-50,#f0f4ef);color:var(--color-brand-900,#1b3d33);box-shadow:inset 0 0 0 1px var(--color-brand-200,#c4d6c8);transition:background-color 150ms}@media(min-width:640px){.ds-chip-selected{min-height:36px}} .ds-chip-selected:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "普通筛选",
+      "kind": "chip",
+      "refersTo": "chip-idle",
+      "description": "状态多选筛选，aria-pressed 提供选中语义。",
+      "html": "<button class=\"ds-chip-idle\" type=\"button\" aria-pressed=\"false\">全部 <span>12</span></button>",
+      "css": ".ds-chip-idle{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border:0;border-radius:6px;font-size:13px;font-weight:500;font-family:\"PingFang SC\", \"Microsoft YaHei\", \"Helvetica Neue\", ui-sans-serif, system-ui, sans-serif;background:transparent;color:var(--color-ink-600,#60685e);transition:background-color 150ms}.ds-chip-idle:hover{background:var(--color-ink-100,#efeee7)}@media(min-width:640px){.ds-chip-idle{min-height:36px}} .ds-chip-idle:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "纸面容器",
+      "kind": "card",
+      "refersTo": "paper",
+      "description": "通用平面工作纸；投递簿另使用金色边界。",
+      "html": "<section class=\"ds-paper\"><h2 class=\"ds-paper-title\">投递簿</h2><p class=\"ds-paper-note\">3 家公司，12 条投递</p></section>",
+      "css": ".ds-paper{border:1px solid var(--color-ink-200,#ddddd2);border-radius:12px;background:var(--color-page,#fffef9);padding:30px;font-family:\"PingFang SC\", \"Microsoft YaHei\", \"Helvetica Neue\", ui-sans-serif, system-ui, sans-serif;}.ds-paper-title{margin:0;font-family:\"Songti SC\", \"STSong\", \"SimSun\", Georgia, serif;font-size:30px;font-weight:600;line-height:1.25;color:var(--color-brand-900,#1b3d33)}.ds-paper-note{margin:8px 0 0;font-size:12px;color:var(--color-ink-600,#60685e)} .ds-paper:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    },
+    {
+      "name": "工具导航",
+      "kind": "nav",
+      "refersTo": "utility-nav",
+      "description": "独立工具带中的胶囊，预览呈现退出动作。",
+      "html": "<nav class=\"ds-nav\" aria-label=\"账号快捷操作\"><button class=\"ds-nav-button\" type=\"button\" aria-label=\"退出登录\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9\"/></svg></button></nav>",
+      "css": ".ds-nav{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--color-gilt-300,#cab990);border-radius:9999px;padding:4px;background:var(--color-page,#fffef9)}.ds-nav-button{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;border-radius:9999px;background:transparent;color:var(--color-ink-600,#60685e)}.ds-nav-button:hover{background:oklch(97.1% .013 17.38);color:oklch(57.7% .245 27.325)}.ds-nav-button:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px} .ds-nav:focus-visible{outline:2px solid var(--color-brand-600,#3d6857);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "穆夏书册：纸张、深青、细金线，整体更精致克制",
+    "overview": "以书册的纸张和装订秩序承载日常投递记录。象牙页底托起白纸工作面，深青承担题名、品牌与主要操作，细金线建立版心；宋体题名、Georgia 字标和系统无衬线界面各司其职。\n\n艺术表达集中在认证和欢迎场景的既有版画。工作页面优先呈现公司、岗位与进度，以对齐、留白和轻分隔保持可扫描性；个人主页沿用一张纸上的分节秩序。",
+    "keyCharacteristics": [
+      "象牙底与白纸工作面，平面优先。",
+      "深青主操作，金色限于细线和小幅装饰。",
+      "宋体题名、Georgia 字标、无衬线操作文字。",
+      "移动端重排内容，保留状态与动作入口。"
+    ],
+    "rules": [
+      {
+        "name": "The Fine Gold Rule",
+        "body": "金色建立边界和分隔，保持窄线与小装饰；不要把金色扩展成主要按钮或大片背景。",
+        "section": "colors"
+      },
+      {
+        "name": "The Separate Voices Rule",
+        "body": "宋体用于题名，Georgia 用于品牌与欢迎统计，无衬线用于记录、表单和操作。",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper First Rule",
+        "body": "静态工作面以底色与细边界区分，临时浮层才使用遮罩或环境阴影。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** 从 src/index.css 和组件实现取值；运行时样式仍以代码为源。",
+      "**Do** 让语义状态色同时保留文字标签。",
+      "**Do** 保持焦点可见、占位文字可读，并遵循减少动态偏好。",
+      "**Do** 让底部工具带占据独立空间，最后一行与分页仍可完整到达。",
+      "**Do** 复用既有植物与罗盘版画，保留文件内来源信息。"
+    ],
+    "donts": [
+      "**Don't** 让金色或装饰画框压过公司、岗位与主动作。",
+      "**Don't** 用衬线字体替换全部表单和记录文字。",
+      "**Don't** 用固定工具层遮住列表末尾，或把窄屏状态和行操作挤在一起。",
+      "**Don't** 把旧注释中的渐变字标、双线角花或奖章恢复为通用规范。"
+    ]
+  }
+}
