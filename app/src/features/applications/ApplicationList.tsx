@@ -5,7 +5,7 @@ import type { Application, ApplicationStatus } from '@/db/schema'
 import { ApplicationRow } from './ApplicationRow'
 import { CompanyGroupHeader } from './CompanyGroup'
 
-const COLLAPSE_KEY = 'jc-collapsed-companies'
+const COLLAPSE_KEY = 'af-collapsed-companies'
 
 /** 每页展示的公司数（按公司块切，避免分组被拆页） */
 const PAGE_SIZE = 15
@@ -188,7 +188,7 @@ export function ApplicationList({
               onToggle={() => toggleGroup(block.company)}
             />
             {!isCollapsed && (
-              <ul className="jc-collapse-in divide-y divide-ink-100 border-t border-ink-100 bg-ink-50/30">
+              <ul className="af-collapse-in divide-y divide-ink-100 border-t border-ink-100 bg-ink-50/30">
                 {block.records.map((record) => (
                   <ApplicationRow
                     key={record.id}

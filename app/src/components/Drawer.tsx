@@ -21,7 +21,7 @@ export function Drawer({ open, title, description, onClose, children, footer }: 
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div
-        className="jc-fade-in absolute inset-0 bg-ink-900/30"
+        className="af-fade-in absolute inset-0 bg-ink-900/30"
         onClick={onClose}
         aria-hidden
       />
@@ -32,7 +32,7 @@ export function Drawer({ open, title, description, onClose, children, footer }: 
         aria-modal="true"
         aria-label={title}
         aria-describedby={description ? descriptionId : undefined}
-        className="jc-slide-in absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-gilt-300 bg-page shadow-xl outline-none"
+        className="af-slide-in absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-gilt-300 bg-page shadow-xl outline-none"
       >
         <header className="flex items-start justify-between gap-4 border-b border-gilt-200/50 px-5 py-4">
           <div>

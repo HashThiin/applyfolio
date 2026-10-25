@@ -17,7 +17,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
 
   return createPortal(
     <div role="status" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex justify-center px-4">
-      <div className="jc-pop-in pointer-events-auto flex max-w-md items-center gap-3 rounded-xl bg-ink-900 px-4 py-2.5 text-sm text-white shadow-xl shadow-ink-900/20">
+      <div className="af-pop-in pointer-events-auto flex max-w-md items-center gap-3 rounded-xl bg-ink-900 px-4 py-2.5 text-sm text-white shadow-xl shadow-ink-900/20">
         <span className="flex-1">{toast.message}</span>
         {toast.actionLabel && toast.onAction && (
           <button

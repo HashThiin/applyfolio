@@ -82,7 +82,7 @@ export function StatusBadge({ status, onChange }: StatusBadgeProps) {
         <div
           role="listbox"
           aria-label="选择投递状态"
-          className="jc-pop-in absolute left-0 z-30 mt-1.5 w-32 overflow-hidden rounded-xl border border-ink-200 bg-white p-1 shadow-lg shadow-ink-900/10"
+          className="af-pop-in absolute left-0 z-30 mt-1.5 w-32 overflow-hidden rounded-xl border border-ink-200 bg-white p-1 shadow-lg shadow-ink-900/10"
           onClick={(event) => event.stopPropagation()}
         >
           {STATUSES.map((item) => (

@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'JobCompass · 校招投递记录本',
-        short_name: 'JobCompass',
-        description: '校招投递进度与笔试面试题目记录，Supabase 云端同步，可安装为应用',
+        name: 'ApplyFolio',
+        short_name: 'ApplyFolio',
+        description: '搜索岗位、收录意向、AI 简历建议与投递进度追踪，Supabase 云端同步，可安装为应用',
         theme_color: '#058a67',
         background_color: '#f7f2e6',
         display: 'standalone',

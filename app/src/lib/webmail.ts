@@ -19,4 +19,4 @@ export const WEBMAIL_PROVIDERS: WebmailProvider[] = [
   { key: 'yahoo', label: 'Yahoo Mail', url: 'https://mail.yahoo.com/' },
 ]
 
-export const WEBMAIL_STORAGE_KEY = 'jc-webmail'
+export const WEBMAIL_STORAGE_KEY = 'af-webmail'

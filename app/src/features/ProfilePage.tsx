@@ -27,7 +27,7 @@ function Card({
   children: React.ReactNode
 }) {
   return (
-    <section className="jc-profile-section">
+    <section className="af-profile-section">
       <h2 className="flex items-start gap-2 text-sm font-medium leading-6 text-ink-700">
         <span className="mt-1 text-ink-500" aria-hidden>{icon}</span>
         {title}
@@ -181,7 +181,7 @@ export function ProfilePage() {
   const [{ lastLoginText }] = useState(() => {
     let ts = 0
     try {
-      ts = Number(localStorage.getItem('jc-last-login') ?? '0')
+      ts = Number(localStorage.getItem('af-last-login') ?? '0')
     } catch {
       ts = 0
     }
@@ -201,14 +201,14 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="jc-shell-header">
-        <div className="jc-shell-header-inner">
+      <header className="af-shell-header">
+        <div className="af-shell-header-inner">
           <button
             type="button"
             onClick={() => navigate('/')}
             title="返回投递列表"
             aria-label="返回投递列表"
-            className="jc-account-button"
+            className="af-account-button"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>

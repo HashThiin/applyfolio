@@ -51,14 +51,14 @@ export function MainApp() {
   // 同标签内刷新/路由往返不再重复弹出。
   const [welcomeOpen, setWelcomeOpen] = useState(() => {
     try {
-      return !sessionStorage.getItem('jc-welcomed')
+      return !sessionStorage.getItem('af-welcomed')
     } catch {
       return true
     }
   })
   function enterFromWelcome() {
     try {
-      sessionStorage.setItem('jc-welcomed', '1')
+      sessionStorage.setItem('af-welcomed', '1')
     } catch {
       /* sessionStorage 不可用时忽略，仅本次会话生效 */
     }
@@ -180,16 +180,16 @@ export function MainApp() {
   }
 
   return (
-    <div className="jc-app">
-      <a href="#applications" className="jc-skip-link">跳转到投递记录</a>
-      <header className="jc-shell-header">
-        <div className="jc-shell-header-inner">
-          <span className="jc-brand-symbol" aria-hidden>
+    <div className="af-app">
+      <a href="#applications" className="af-skip-link">跳转到投递记录</a>
+      <header className="af-shell-header">
+        <div className="af-shell-header-inner">
+          <span className="af-brand-symbol" aria-hidden>
             <Compass className="h-4 w-4" />
           </span>
           <div className="min-w-0">
             <Wordmark className="block text-[25px] leading-none" />
-            <p className="jc-brand-caption">校招投递记录簿</p>
+            <p className="af-brand-caption">求职投递工作台</p>
           </div>
           <div className="ml-auto flex items-center gap-4">
             <div className="hidden md:block">
@@ -206,7 +206,7 @@ export function MainApp() {
               onClick={() => navigate('/me')}
               title="个人主页"
               aria-label="个人主页"
-              className="jc-account-button"
+              className="af-account-button"
             >
               <UserRound className="h-4 w-4" />
             </button>
@@ -214,13 +214,13 @@ export function MainApp() {
         </div>
       </header>
 
-      <div className="jc-workspace-scroll">
-      <main id="applications" tabIndex={-1} className="jc-workspace scroll-mt-28 outline-none">
-        <Plate className="jc-ledger">
-          <div className="jc-ledger-heading">
+      <div className="af-workspace-scroll">
+      <main id="applications" tabIndex={-1} className="af-workspace scroll-mt-28 outline-none">
+        <Plate className="af-ledger">
+          <div className="af-ledger-heading">
             <div className="mb-6 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h1 className="jc-ledger-title">投递簿</h1>
+                <h1 className="af-ledger-title">投递簿</h1>
                 <p aria-live="polite" className="mt-2 text-xs leading-relaxed tabular-nums text-ink-600">
                   {keyword.trim() || statuses.length > 0
                     ? `找到 ${rows?.length ?? 0} 条投递，共 ${total} 条`
@@ -228,7 +228,7 @@ export function MainApp() {
                   <span className="mt-0.5 block md:hidden">{active} 条进行中，{counts.offer} 个 Offer</span>
                 </p>
               </div>
-              <button type="button" onClick={openNew} className="jc-button-primary shrink-0">
+              <button type="button" onClick={openNew} className="af-button-primary shrink-0">
                 <Plus className="h-4 w-4" />
                 添加投递
               </button>
@@ -291,8 +291,8 @@ export function MainApp() {
       <Toast toast={toast} onDismiss={dismissToast} />
 
       {/* 底部悬浮 dock：邮箱（先选后进）与退出登录，拇指区易触、不占版面 */}
-      <div className="jc-utility-bar">
-      <nav aria-label="账号与邮箱快捷操作" className="jc-bottom-dock flex items-center gap-1 rounded-full border p-1">
+      <div className="af-utility-bar">
+      <nav aria-label="账号与邮箱快捷操作" className="af-bottom-dock flex items-center gap-1 rounded-full border p-1">
         <WebmailMenu panelUp />
         <span className="mx-0.5 h-5 w-px bg-gilt-200/80" aria-hidden />
         <button

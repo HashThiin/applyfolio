@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
-const LAST_LOGIN_KEY = 'jc-last-login'
+const LAST_LOGIN_KEY = 'af-last-login'
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
 function readLastLogin(): number {

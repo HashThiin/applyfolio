@@ -34,11 +34,11 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="登录"
-      description="用注册邮箱进入你的投递簿"
-      caption="投递有迹，四季有信。把每一次笔试、面试与答复，都收在同一本簿子里。"
+      description="用注册邮箱进入你的求职投递工作台"
+      caption="投递有迹，四季有信。从一条岗位意向开始，收下要求、改好简历、等来回响。"
       footer={<><span>还没有账号？</span><Link to="/register">注册</Link></>}
     >
-      <form onSubmit={handleSubmit} className="jc-auth-form">
+      <form onSubmit={handleSubmit} className="af-auth-form">
         <div>
           <label htmlFor="login-email" className="mb-1.5 block text-xs font-medium text-ink-700">邮箱</label>
           <EmailInput
@@ -69,7 +69,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="jc-button-primary w-full"
+          className="af-button-primary w-full"
         >
           {loading && <Loader2 className="relative h-4 w-4 animate-spin" />}
           <span className="relative">登录</span>

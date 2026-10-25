@@ -16,7 +16,7 @@ interface QuestionPanelProps {
 }
 
 /** 草稿存储键：按投递隔离，防止关闭抽屉丢失未提交正文 */
-const draftKey = (applicationId: string) => `jc-question-draft:${applicationId}`
+const draftKey = (applicationId: string) => `af-question-draft:${applicationId}`
 
 function readDraft(applicationId: string): string {
   try {
@@ -256,7 +256,7 @@ export function QuestionPanel({ applicationId, userId }: QuestionPanelProps) {
           type="button"
           onClick={() => void handleSubmit()}
           disabled={!canSubmit}
-          className="jc-button-primary w-full"
+          className="af-button-primary w-full"
         >
           {submitting ? '保存中...' : images.length > 0 && !content.trim() ? '仅保存截图' : '添加记录'}
         </button>

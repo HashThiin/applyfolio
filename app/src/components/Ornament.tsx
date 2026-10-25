@@ -42,13 +42,13 @@ export function MosaicBand({ className = '' }: { className?: string }) {
   return (
     <svg height="8" width="100%" className={className} aria-hidden>
       <defs>
-        <pattern id="jc-mosaic" width="24" height="8" patternUnits="userSpaceOnUse">
+        <pattern id="af-mosaic" width="24" height="8" patternUnits="userSpaceOnUse">
           <path d="M12 1.2L15.6 4L12 6.8L8.4 4Z" fill="currentColor" opacity="0.8" />
           <path d="M0 4L2.1 2.5L4.2 4L2.1 5.5Z" fill="currentColor" opacity="0.4" />
           <path d="M19.8 4L21.9 2.5L24 4L21.9 5.5Z" fill="currentColor" opacity="0.4" />
         </pattern>
       </defs>
-      <rect width="100%" height="8" fill="url(#jc-mosaic)" />
+      <rect width="100%" height="8" fill="url(#af-mosaic)" />
     </svg>
   )
 }
@@ -65,9 +65,9 @@ export function Plate({
 }) {
   return (
     <div
-      className={`jc-plate ${className}`}
+      className={`af-plate ${className}`}
     >
-      <div className={`jc-plate-content ${contentClassName}`}>{children}</div>
+      <div className={`af-plate-content ${contentClassName}`}>{children}</div>
     </div>
   )
 }
@@ -116,8 +116,8 @@ export function Medallion({
 }) {
   return (
     <div className={`flex flex-col ${className}`}>
-      <span className={`jc-stat-number ${TONE_TEXT[tone]}`}>{value}</span>
-      <span className="jc-stat-label">{label}</span>
+      <span className={`af-stat-number ${TONE_TEXT[tone]}`}>{value}</span>
+      <span className="af-stat-label">{label}</span>
     </div>
   )
 }
@@ -125,11 +125,11 @@ export function Medallion({
 /** 全站画框：固定于视口的双细线 + 四角角花，把界面变成一张版画纸 */
 export function PosterFrame() {
   return (
-    <div aria-hidden className="jc-frame" />
+    <div aria-hidden className="af-frame" />
   )
 }
 
 /** 金箔字标：金属渐变只出现在品牌名上 */
 export function Wordmark({ className = '', inverse = false }: { className?: string; inverse?: boolean }) {
-  return <span className={`jc-wordmark ${inverse ? 'jc-wordmark--light' : 'text-brand-900'} ${className}`}>JobCompass</span>
+  return <span className={`af-wordmark ${inverse ? 'af-wordmark--light' : 'text-brand-900'} ${className}`}>ApplyFolio</span>
 }

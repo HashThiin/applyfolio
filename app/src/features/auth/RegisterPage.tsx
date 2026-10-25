@@ -44,11 +44,11 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="创建账号"
-      description="注册后即可使用 JobCompass"
-      caption="一本投递簿，装下整个秋招的节奏。注册后即可开始记录。"
+      description="注册后即可使用 ApplyFolio"
+      caption="从收录第一条岗位意向开始，让每次投递都有据可依。注册后即可开始。"
       footer={<><span>已有账号？</span><Link to="/login">登录</Link></>}
     >
-      <form onSubmit={handleSubmit} className="jc-auth-form">
+      <form onSubmit={handleSubmit} className="af-auth-form">
         <div>
           <label htmlFor="register-email" className="mb-1.5 block text-xs font-medium text-ink-700">邮箱</label>
           <EmailInput
@@ -93,7 +93,7 @@ export function RegisterPage() {
         <button
           type="submit"
           disabled={loading || success}
-          className="jc-button-primary w-full"
+          className="af-button-primary w-full"
         >
           {loading && <Loader2 className="relative h-4 w-4 animate-spin" />}
           <span className="relative">注册</span>

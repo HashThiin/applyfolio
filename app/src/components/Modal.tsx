@@ -20,7 +20,7 @@ export function Modal({ open, title, onClose, children, footer, tone = 'default'
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="jc-fade-in absolute inset-0 bg-ink-900/40"
+        className="af-fade-in absolute inset-0 bg-ink-900/40"
         onClick={onClose}
         aria-hidden
       />
@@ -30,7 +30,7 @@ export function Modal({ open, title, onClose, children, footer, tone = 'default'
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="jc-pop-in relative flex max-h-[calc(100dvh-2rem)] w-full max-w-sm flex-col overflow-y-auto rounded-xl border border-gilt-300 bg-page shadow-xl outline-none"
+        className="af-pop-in relative flex max-h-[calc(100dvh-2rem)] w-full max-w-sm flex-col overflow-y-auto rounded-xl border border-gilt-300 bg-page shadow-xl outline-none"
       >
         <header className="flex items-start gap-3 px-5 pt-5">
           {tone === 'danger' && (

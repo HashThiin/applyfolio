@@ -64,7 +64,7 @@ export function WebmailMenu({ panelUp = false }: { panelUp?: boolean }) {
       {open && (
         <div
           role="menu"
-          className={`jc-pop-in absolute left-1/2 z-40 w-60 -translate-x-1/2 overflow-hidden rounded-xl border border-ink-200 bg-page p-1.5 shadow-xl shadow-ink-900/10 ${
+          className={`af-pop-in absolute left-1/2 z-40 w-60 -translate-x-1/2 overflow-hidden rounded-xl border border-ink-200 bg-page p-1.5 shadow-xl shadow-ink-900/10 ${
             panelUp ? 'bottom-full mb-2' : 'mt-2'
           }`}
         >

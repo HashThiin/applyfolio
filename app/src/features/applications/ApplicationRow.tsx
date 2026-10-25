@@ -88,7 +88,7 @@ export function ApplicationRow({
         <span className="mt-1 block text-[11px]">{relativeDays(record.updated_at)}更新</span>
       </div>
 
-      <div className={`jc-row-status flex shrink-0 ${isSub ? 'pl-[42px] sm:pl-0' : 'pl-[50px] sm:pl-0'}`}>
+      <div className={`af-row-status flex shrink-0 ${isSub ? 'pl-[42px] sm:pl-0' : 'pl-[50px] sm:pl-0'}`}>
         <StatusBadge status={record.status} onChange={onStatusChange} />
       </div>
 

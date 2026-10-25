@@ -265,10 +265,10 @@ export function ApplicationForm({
             placeholder="如：字节跳动"
             maxLength={60}
             autoFocus
-            list="jc-company-options"
+            list="af-company-options"
             className={`${inputClass} ${errors.company ? 'border-red-300' : 'border-ink-200 focus:border-brand-600'}`}
           />
-          <datalist id="jc-company-options">
+          <datalist id="af-company-options">
             {companies.map((name) => (
               <option key={name} value={name} />
             ))}

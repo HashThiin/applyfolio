@@ -12,13 +12,13 @@ interface StatsBarProps {
  */
 export function StatsBar({ total, active, offers, rejected }: StatsBarProps) {
   return (
-    <div className="jc-stats" role="status" aria-label="投递统计">
+    <div className="af-stats" role="status" aria-label="投递统计">
       <dl className="flex gap-7">
-        <div className="jc-stats-item"><dt>总投递</dt><dd>{total}</dd></div>
-        <div className="jc-stats-item"><dt>进行中</dt><dd>{active}</dd></div>
-        <div className="jc-stats-item"><dt>Offer</dt><dd>{offers}</dd></div>
+        <div className="af-stats-item"><dt>总投递</dt><dd>{total}</dd></div>
+        <div className="af-stats-item"><dt>进行中</dt><dd>{active}</dd></div>
+        <div className="af-stats-item"><dt>Offer</dt><dd>{offers}</dd></div>
       </dl>
-      <p className="jc-stats-ended">已结束 {rejected}</p>
+      <p className="af-stats-ended">已结束 {rejected}</p>
     </div>
   )
 }
