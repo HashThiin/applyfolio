@@ -35,6 +35,28 @@
    ```
    不配置也能用：点「收录并分析」会提示未配置，并按「只收录」保存记录。
 
+### 1.1 用脚本一次做完（推荐）
+
+上面的 006 迁移 + 部署函数 + 写密钥，可以用一个脚本跑完（不需要 psql、不需要数据库密码、不需要 Docker）：
+
+```powershell
+cd app
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-v3.ps1
+```
+
+- 只依赖一个 **Supabase Personal Access Token**（Dashboard → 右上头像 → Account → Access Tokens），脚本提示时粘贴即可，只存在本进程内存，不落盘
+- 006 通过 Management API 直接执行 SQL 文件，**绕过 `supabase db push` 的迁移历史**问题（本地没建过历史表时 push 会从 001 重跑并报「表已存在」）；006 本身幂等，可重复执行
+- 函数与密钥走官方 CLI（`npx supabase@latest`，`--use-api` 由服务端打包）
+- 最后自动校验：字段 7 个 / `resumes` 私有桶 / 桶策略 4 条 / `analyze-job` ACTIVE / 密钥存在
+
+| 参数 | 用途 |
+|---|---|
+| `-Step sql` \| `function` \| `secret` \| `verify` | 只做其中一步（默认 `all`） |
+| `-DryRun` | 只打印将要执行的动作，不调接口（先看清楚再跑） |
+| `-ProjectRef` | 覆盖 ref；默认从 `.env.local` 的 `VITE_SUPABASE_URL` 解析 |
+| `$env:SUPABASE_ACCESS_TOKEN` | 预先设好 token 就不用交互输入 |
+| `-Proxy http://127.0.0.1:7897` | 访问 `api.supabase.com` 需要走代理时用 |
+
 ### 2. 配置环境变量
 
 创建 `app/.env.local`（已 gitignore）：
@@ -220,7 +242,9 @@ app/
 ├─ supabase/
 │  ├─ migrations/              # SQL：001 建表 / 002 tier→color / 003 状态管线 / 004 置顶 / 005 用户档案 / 006 简历与 AI 建议
 │  └─ functions/analyze-job/   # Edge Function（Deno）：读简历 + 岗位要求 → DeepSeek
-├─ scripts/gen-icons.ps1       # GDI+ 绘制 PWA 图标
+├─ scripts/
+│  ├─ gen-icons.ps1            # GDI+ 绘制 PWA 图标
+│  └─ setup-v3.ps1             # v3.0 上线脚本：006 + 部署 analyze-job + 写 DEEPSEEK_API_KEY + 校验
 ├─ public/                     # favicon.svg、pwa-192/512.png、apple-touch-icon.png
 ├─ src/
 │  ├─ main.tsx                 # BrowserRouter 入口
