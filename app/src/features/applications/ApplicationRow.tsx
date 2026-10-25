@@ -1,4 +1,4 @@
-import { Copy, ExternalLink, Pin, Trash2 } from 'lucide-react'
+import { Copy, ExternalLink, Pin, Send, Sparkles, Trash2 } from 'lucide-react'
 import { StatusBadge } from '@/components/StatusBadge'
 import { CompanyAvatar } from '@/components/CompanyAvatar'
 import { statusProgress } from '@/db/schema'
@@ -21,6 +21,8 @@ interface ApplicationRowProps {
   onDelete: () => void
   onCopyUrl: () => void
   onTogglePin: () => void
+  /** 收录的意向真正投出后调用：投递 → 初筛 */
+  onDeliver: () => void
 }
 
 export function ApplicationRow({
@@ -31,6 +33,7 @@ export function ApplicationRow({
   onDelete,
   onCopyUrl,
   onTogglePin,
+  onDeliver,
 }: ApplicationRowProps) {
   const hasUrl = Boolean(record.url && isSafeHttpUrl(record.url))
   const domain = record.url ? hostOf(record.url) : ''
@@ -39,8 +42,8 @@ export function ApplicationRow({
 
   return (
     <li
-      className={`group relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 py-3.5 pr-4 transition hover:bg-gilt-100/50 sm:grid-cols-[minmax(0,1fr)_112px_96px_136px] sm:gap-3 sm:py-4 sm:pr-5 ${
-        isSub ? 'pl-8 sm:pl-[64px]' : 'pl-4 sm:pl-5'
+      className={`group relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 py-3.5 pr-4 transition hover:bg-gilt-100/50 md:grid-cols-[minmax(0,1fr)_96px_96px_196px] md:gap-3 md:py-4 md:pr-5 ${
+        isSub ? 'pl-8 md:pl-[64px]' : 'pl-4 md:pl-5'
       }`}
     >
       {/* 左侧优先级色条：仅顶层公司行显示，颜色=用户选择，透明度随流程进度加深 */}
@@ -59,10 +62,10 @@ export function ApplicationRow({
         type="button"
         onClick={onEdit}
         aria-label={`查看 ${record.company} ${record.role} 的投递记录`}
-        className="col-span-2 flex min-w-0 items-center gap-3 rounded-lg text-left sm:col-span-1"
+        className="col-span-2 flex min-w-0 items-center gap-3 rounded-lg text-left md:col-span-1"
       >
         {/* 顶层行预留 chevron 同宽占位，使头像与多岗位分组头左对齐 */}
-        {!isSub && <span className="hidden w-4 shrink-0 sm:block" aria-hidden />}
+        {!isSub && <span className="hidden w-4 shrink-0 md:block" aria-hidden />}
         <CompanyAvatar
           company={record.company}
           color={record.color}
@@ -77,22 +80,43 @@ export function ApplicationRow({
           </span>
           <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-600">
             {!isSub && <span className="max-w-full truncate">{record.role}</span>}
-            <span className="shrink-0 tabular-nums sm:hidden">{formatDate(record.applied_at)}</span>
-            {isSub && <span className="hidden sm:inline">{record.company}</span>}
+            {record.advice && (
+              <span
+                className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-brand-600/30 bg-brand-50 px-1.5 py-px text-[10px] font-medium tabular-nums text-brand-800"
+                title="已生成 AI 简历建议，点开记录可看"
+              >
+                <Sparkles className="h-2.5 w-2.5" aria-hidden />
+                建议 {record.advice.matchScore}
+              </span>
+            )}
+            <span className="shrink-0 tabular-nums md:hidden">{formatDate(record.applied_at)}</span>
+            {isSub && <span className="hidden md:inline">{record.company}</span>}
           </span>
         </span>
       </button>
 
-      <div className="hidden pr-4 text-right text-xs leading-relaxed tabular-nums text-ink-600 sm:block">
+      <div className="hidden pr-4 text-right text-xs leading-relaxed tabular-nums text-ink-600 md:block">
         <time dateTime={record.applied_at}>{formatDate(record.applied_at)}</time>
         <span className="mt-1 block text-[11px]">{relativeDays(record.updated_at)}更新</span>
       </div>
 
-      <div className={`af-row-status flex shrink-0 ${isSub ? 'pl-[42px] sm:pl-0' : 'pl-[50px] sm:pl-0'}`}>
+      <div className={`af-row-status flex shrink-0 ${isSub ? 'pl-[42px] md:pl-0' : 'pl-[50px] md:pl-0'}`}>
         <StatusBadge status={record.status} onChange={onStatusChange} />
       </div>
 
       <div className="flex shrink-0 items-center justify-end gap-0.5">
+        {record.status === 'applied' && (
+          <button
+            type="button"
+            onClick={onDeliver}
+            title="已经投出去了？点这里记为初筛"
+            aria-label={`标记 ${record.company} ${record.role} 已投出，进入初筛`}
+            className="mr-1 inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-brand-800 px-2 text-[11px] font-medium text-page transition hover:bg-brand-700"
+          >
+            <Send className="h-2.5 w-2.5" aria-hidden />
+            <span className="hidden sm:inline">已投出</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={onTogglePin}
@@ -101,7 +125,7 @@ export function ApplicationRow({
           className={`flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-brand-50 sm:h-8 sm:w-8 ${
             record.pinned
               ? 'text-brand-700'
-              : 'text-ink-500 hover:text-brand-700 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100'
+              : 'text-ink-500 hover:text-brand-700 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100'
           }`}
         >
           <Pin className="h-3.5 w-3.5" />
@@ -145,7 +169,7 @@ export function ApplicationRow({
           onClick={onDelete}
           title="删除"
           aria-label={`删除 ${record.company}`}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition hover:bg-red-50 hover:text-red-600 sm:h-8 sm:w-8 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition hover:bg-red-50 hover:text-red-600 sm:h-8 sm:w-8 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

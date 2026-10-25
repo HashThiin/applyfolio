@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { Compass, LogOut, Plus, UserRound } from 'lucide-react'
+import { Compass, LogOut, Send, UserRound } from 'lucide-react'
 import { Plate, Wordmark } from '@/components/Ornament'
 import { Toast, type ToastState } from '@/components/Toast'
 import { StatsBar } from '@/components/StatsBar'
@@ -24,6 +24,7 @@ import {
 } from '@/db/schema'
 import { ApplicationForm } from '@/features/applications/ApplicationForm'
 import { ApplicationList } from '@/features/applications/ApplicationList'
+import { IntentPanel } from '@/features/intents/IntentPanel'
 import { WelcomeOverlay } from '@/features/WelcomeOverlay'
 import {
   useAllApplications,
@@ -43,6 +44,7 @@ export function MainApp() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Application | null>(null)
+  const [intentOpen, setIntentOpen] = useState(false)
 
   const [toast, setToast] = useState<ToastState | null>(null)
   const toastTimer = useRef<number | null>(null)
@@ -102,6 +104,15 @@ export function MainApp() {
     setFormOpen(true)
   }
 
+  function openIntent() {
+    setIntentOpen(true)
+  }
+
+  function openManualFromIntent() {
+    setIntentOpen(false)
+    openNew()
+  }
+
   function openEdit(record: Application) {
     setEditing(record)
     setFormOpen(true)
@@ -144,6 +155,22 @@ export function MainApp() {
     if (record.status === status) return
     await updateStatus(record.id, status)
     showToast({ message: `「${record.company}」→ ${STATUS_LABEL[status]}` }, 2000)
+  }
+
+  /** 收录的意向真正投出：投递 → 初筛 */
+  async function handleDeliver(record: Application) {
+    if (record.status !== 'applied') return
+    await updateStatus(record.id, 'screening')
+    showToast(
+      {
+        message: `「${record.company} · ${record.role}」已投出，进入初筛`,
+        actionLabel: '撤销',
+        onAction: () => {
+          void updateStatus(record.id, 'applied')
+        },
+      },
+      5000,
+    )
   }
 
   function handleDelete(record: Application) {
@@ -228,9 +255,9 @@ export function MainApp() {
                   <span className="mt-0.5 block md:hidden">{active} 条进行中，{counts.offer} 个 Offer</span>
                 </p>
               </div>
-              <button type="button" onClick={openNew} className="af-button-primary shrink-0">
-                <Plus className="h-4 w-4" />
-                添加投递
+              <button type="button" onClick={openIntent} className="af-button-primary shrink-0">
+                <Send className="h-4 w-4" />
+                投递
               </button>
             </div>
             <Toolbar
@@ -261,7 +288,8 @@ export function MainApp() {
               onDelete={handleDelete}
               onCopyUrl={(record) => void handleCopyUrl(record)}
               onTogglePin={(record) => void handleTogglePin(record)}
-              onNew={openNew}
+              onDeliver={(record) => void handleDeliver(record)}
+              onNew={openIntent}
               onClearFilters={() => { setKeyword(''); setStatuses([]) }}
             />
           </div>
@@ -272,12 +300,20 @@ export function MainApp() {
                 共 {total} 条 · 已结束 {counts.rejected + counts.withdrawn}
                 {(keyword.trim() || statuses.length > 0) && `，当前显示 ${rows.length} 条`}
               </span>
-              <span>点击岗位查看记录，点击状态更新进度</span>
+              <span>点「已投出」直接进初筛，点进度可手动改</span>
             </footer>
           )}
         </Plate>
       </main>
       </div>
+
+      <IntentPanel
+        open={intentOpen}
+        userId={effectiveUid}
+        onClose={() => setIntentOpen(false)}
+        onCollected={(message) => showToast({ message }, 5000)}
+        onOpenManual={openManualFromIntent}
+      />
 
       <ApplicationForm
         open={formOpen}

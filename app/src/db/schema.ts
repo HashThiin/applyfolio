@@ -104,6 +104,9 @@ export interface Application {
   channel: string | null
   color: string | null   // hex 色值 #rrggbb，优先级颜色标记
   pinned?: boolean         // 是否置顶（列表排序优先）
+  jd_text?: string         // 岗位要求原文（「收录意向」时粘贴或抓取，供 AI 分析）
+  advice?: Advice | null   // AI 简历建议（结构见 Advice）
+  advice_at?: string | null
   created_at: string       // ISO timestamp
   updated_at: string       // ISO timestamp
 }
@@ -131,6 +134,10 @@ export type QuestionInput = Omit<
 export interface UserProfile {
   user_id: string
   self_evaluation: string  // 纯文本，允许空串（清空即保存空）
+  resume_path?: string | null       // Storage 内简历原件路径（resumes 私有桶）
+  resume_filename?: string | null   // 原件文件名，仅用于展示
+  resume_text?: string              // 手动粘贴的简历文本，优先于原件抽取结果
+  resume_updated_at?: string | null
   updated_at: string       // ISO timestamp
 }
 
@@ -138,11 +145,59 @@ export interface UserProfile {
 export const SELF_EVALUATION_MAX_LENGTH = 1000
 
 // ============================================================
+// AI 简历建议（Edge Function analyze-job 的输出结构）
+// ============================================================
+
+export interface AdviceEdit {
+  /** 简历里的哪个部分，如「项目经历」「技能清单」 */
+  section: string
+  /** 具体怎么改 */
+  suggestion: string
+}
+
+export interface Advice {
+  /** 与岗位的匹配度 0-100 */
+  matchScore: number
+  /** 一句话结论 */
+  summary: string
+  /** 已具备的优势 */
+  strengths: string[]
+  /** 岗位要求里还缺的点 */
+  gaps: string[]
+  /** 应该出现在简历里的关键词 */
+  keywords: string[]
+  /** 逐条修改建议 */
+  resumeEdits: AdviceEdit[]
+  /** 投递前/面试前该做的事 */
+  nextSteps: string[]
+}
+
+/** 个人中心上传简历：只收能从文字里读的格式 */
+export const RESUME_ACCEPT = '.pdf,.txt,.md'
+export const RESUME_MAX_BYTES = 5 * 1024 * 1024
+/** 手动粘贴简历文本的上限 */
+export const RESUME_TEXT_MAX_LENGTH = 20000
+
+/** 「收录意向」里岗位要求的长度门槛：太短没有分析价值 */
+export const MIN_JD_LENGTH = 40
+export const MAX_JD_LENGTH = 8000
+
+// ============================================================
 // 辅助
 // ============================================================
 
 /** 终态：不计入「进行中」 */
 export const TERMINAL_STATUSES: ApplicationStatus[] = ['offer', 'rejected', 'withdrawn']
+
+/**
+ * 缺表/缺列错误识别：42P01=表缺失，42703=列缺失，PGRST204=PostgREST 找不到列。
+ * 迁移没在 Supabase 里执行时，前端据此给出「先跑 SQL」的可操作提示。
+ */
+export function isMissingSchemaError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  const code = (error as { code?: string }).code
+  return code === '42P01' || code === '42703' || code === 'PGRST204'
+}
 
 export const SORT_OPTIONS = [
   { value: 'applied_at', label: '投递日期' },

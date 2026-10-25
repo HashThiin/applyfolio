@@ -1,10 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { ArrowLeft, Compass, LogOut, NotebookPen, ShieldCheck, Sparkles, UserRound } from 'lucide-react'
+import { ArrowLeft, Compass, FileText, LogOut, NotebookPen, ShieldCheck, Sparkles, Trash2, Upload, UserRound } from 'lucide-react'
 import { Plate, Wordmark } from '@/components/Ornament'
 import { supabase } from '@/lib/supabase'
-import { getProfile, saveSelfEvaluation } from '@/db/profiles'
-import { SELF_EVALUATION_MAX_LENGTH } from '@/db/schema'
+import {
+  deleteResumeFile,
+  getProfile,
+  saveResumeMeta,
+  saveSelfEvaluation,
+  uploadResumeFile,
+} from '@/db/profiles'
+import {
+  isMissingSchemaError,
+  RESUME_ACCEPT,
+  RESUME_MAX_BYTES,
+  RESUME_TEXT_MAX_LENGTH,
+  SELF_EVALUATION_MAX_LENGTH,
+} from '@/db/schema'
 import { useAllApplications } from '@/features/applications/useApplications'
 
 function formatLoginTime(ts: number): string {
@@ -67,6 +79,7 @@ function isMissingTable(err: unknown): boolean {
 }
 
 const MISSING_TABLE_HINT = '数据库缺少 user_profiles 表，请先执行 005_user_profile.sql'
+const MISSING_COLUMN_HINT = '数据库缺少简历字段，请先执行 006_resume_and_advice.sql'
 
 /**
  * 自我评价：一段可反复修改的定位陈述，存 Supabase（一用户一行，upsert）。
@@ -170,6 +183,211 @@ function SelfEvaluationCard({ userId }: { userId: string }) {
 }
 
 /**
+ * 简历：原件上传到 resumes 私有桶，AI 分析时由 Edge Function 读取原件文字。
+ * 扫描版 PDF 抽不出文字时，用下方文本框粘贴纯文本兜底（文本优先于原件）。
+ */
+function ResumeCard({ userId }: { userId: string }) {
+  const [loading, setLoading] = useState(true)
+  const [path, setPath] = useState<string | null>(null)
+  const [filename, setFilename] = useState<string | null>(null)
+  const [text, setText] = useState('')
+  const [savedText, setSavedText] = useState('')
+  const [busy, setBusy] = useState<'upload' | 'text' | 'remove' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void Promise.resolve().then(async () => {
+      try {
+        const profile = await getProfile(userId)
+        if (cancelled) return
+        setPath(profile?.resume_path ?? null)
+        setFilename(profile?.resume_filename ?? null)
+        const saved = profile?.resume_text ?? ''
+        setText(saved)
+        setSavedText(saved.trim())
+      } catch (err) {
+        if (!cancelled) {
+          setError(isMissingSchemaError(err) ? MISSING_COLUMN_HINT : '读取失败，刷新后可重试')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  const textDirty = text.trim() !== savedText
+
+  function reportError(err: unknown) {
+    if (isMissingSchemaError(err)) return setError(MISSING_COLUMN_HINT)
+    const message = err instanceof Error ? err.message : ''
+    setError(message.includes('超过') ? message : '操作失败，请重试')
+  }
+
+  async function handleFile(file: File | undefined) {
+    if (!file || busy) return
+    if (!/\.(pdf|txt|md)$/i.test(file.name)) {
+      setError('只支持 PDF / TXT / MD；Word 请另存为 PDF')
+      return
+    }
+    if (file.size > RESUME_MAX_BYTES) {
+      setError(`文件超过 ${Math.round(RESUME_MAX_BYTES / 1024 / 1024)} MB`)
+      return
+    }
+    setBusy('upload')
+    setError(null)
+    setNotice(null)
+    const previous = path
+    try {
+      const nextPath = await uploadResumeFile(userId, file)
+      const profile = await saveResumeMeta(userId, {
+        resume_path: nextPath,
+        resume_filename: file.name,
+      })
+      setPath(profile.resume_path ?? nextPath)
+      setFilename(profile.resume_filename ?? file.name)
+      // 改了扩展名会得到新路径，旧文件顺手清掉，桶里只留一份
+      if (previous && previous !== nextPath) {
+        void deleteResumeFile(previous).catch(() => undefined)
+      }
+      setNotice('已上传，AI 分析时会读取这份简历的文字')
+    } catch (err) {
+      reportError(err)
+    } finally {
+      setBusy(null)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  async function handleRemove() {
+    if (busy) return
+    setBusy('remove')
+    setError(null)
+    setNotice(null)
+    try {
+      if (path) await deleteResumeFile(path)
+      await saveResumeMeta(userId, { resume_path: null, resume_filename: null })
+      setPath(null)
+      setFilename(null)
+      setNotice('已删除简历原件；已粘贴的文本仍保留')
+    } catch (err) {
+      reportError(err)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function handleSaveText() {
+    if (busy || !textDirty) return
+    setBusy('text')
+    setError(null)
+    setNotice(null)
+    try {
+      const profile = await saveResumeMeta(userId, { resume_text: text.trim() })
+      setSavedText((profile.resume_text ?? '').trim())
+      setNotice(text.trim() ? '简历文本已保存，分析时优先使用它' : '已清空简历文本')
+    } catch (err) {
+      reportError(err)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <Card title="简历" icon={<FileText className="h-3.5 w-3.5" />}>
+      <p className="mb-3 text-xs leading-relaxed text-ink-600">
+        「收录意向」时 AI 会拿这份简历与岗位要求比对，给出修改方向。支持 PDF / TXT / MD，最大{' '}
+        {Math.round(RESUME_MAX_BYTES / 1024 / 1024)} MB。
+      </p>
+
+      {loading ? (
+        <p className="py-2 text-sm text-ink-600">加载中…</p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-ink-200 bg-white px-3 py-2.5">
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <FileText className={`h-4 w-4 shrink-0 ${filename ? 'text-brand-700' : 'text-ink-400'}`} />
+              <span className={`truncate ${filename ? 'text-ink-900' : 'text-ink-600'}`}>
+                {filename ?? '尚未上传简历原件'}
+              </span>
+            </span>
+            <span className="flex items-center gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept={RESUME_ACCEPT}
+                onChange={(e) => void handleFile(e.target.files?.[0])}
+                className="sr-only"
+                aria-label="选择简历文件"
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy !== null}
+                className="inline-flex h-9 items-center gap-1.5 rounded-md border border-brand-800 bg-brand-800 px-3 text-xs font-medium text-page transition hover:border-brand-700 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                {busy === 'upload' ? '上传中…' : filename ? '更换' : '上传'}
+              </button>
+              {filename && (
+                <button
+                  type="button"
+                  onClick={() => void handleRemove()}
+                  disabled={busy !== null}
+                  title="删除简历原件"
+                  aria-label="删除简历原件"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 text-ink-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </span>
+          </div>
+
+          <label className="mt-4 block">
+            <span className="mb-1.5 flex items-center gap-1 text-xs font-medium text-ink-700">
+              简历纯文本（可选，扫描版 PDF 请用这里）
+            </span>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={'把简历正文粘贴进来。有文本时优先用它做分析，原件仍会保留。'}
+              rows={4}
+              maxLength={RESUME_TEXT_MAX_LENGTH}
+              className="min-h-[96px] w-full resize-y rounded-md border border-ink-200 bg-white px-3 py-2.5 text-base leading-relaxed placeholder:text-ink-600 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/15 sm:text-sm"
+            />
+          </label>
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <span className="text-xs tabular-nums text-ink-600">
+              {text.length} / {RESUME_TEXT_MAX_LENGTH}
+            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span role="status" className={`text-xs ${error ? 'text-red-700' : 'text-ink-600'}`}>
+                {error ?? notice ?? (textDirty ? '文本有未保存的修改' : '')}
+              </span>
+              <button
+                type="button"
+                onClick={() => void handleSaveText()}
+                disabled={!textDirty || busy !== null}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-ink-200 bg-white px-4 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {busy === 'text' ? '保存中…' : '保存文本'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </Card>
+  )
+}
+
+/**
  * 个人主页：账号信息、自我评价、免登录状态、数据概览与退出登录。
  * 内容待持续补充，先承载从顶栏迁出的账号类功能。
  */
@@ -240,6 +458,8 @@ export function ProfilePage() {
         </Card>
 
         <SelfEvaluationCard userId={userId} />
+
+        <ResumeCard userId={userId} />
 
         <Card title="登录状态" icon={<ShieldCheck className="h-3.5 w-3.5" />}>
           <Row label="最近登录" value={lastLoginText} />

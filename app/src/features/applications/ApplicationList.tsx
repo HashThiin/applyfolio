@@ -28,6 +28,7 @@ interface ApplicationListProps {
   onDelete: (record: Application) => void
   onCopyUrl: (record: Application) => void
   onTogglePin: (record: Application) => void
+  onDeliver: (record: Application) => void
   onNew: () => void
   onClearFilters: () => void
 }
@@ -61,6 +62,7 @@ export function ApplicationList({
   onDelete,
   onCopyUrl,
   onTogglePin,
+  onDeliver,
   onNew,
   onClearFilters,
 }: ApplicationListProps) {
@@ -138,14 +140,14 @@ export function ApplicationList({
       <EmptyState
         icon={<Inbox className="h-6 w-6" />}
         title="还没有投递记录"
-        description="把投过的公司记下来，附上岗位链接，以后再也不用翻邮件找了。"
+        description="点「投递」去找岗位：收录意向后自动记一条，并给出简历修改建议。"
         action={
           <button
             type="button"
             onClick={onNew}
             className="min-h-11 rounded-full bg-brand-800 px-5 text-sm font-medium text-white transition hover:bg-brand-700"
           >
-            新增第一条投递
+            开始投递
           </button>
         }
       />
@@ -154,7 +156,7 @@ export function ApplicationList({
 
   return (
     <>
-    <div aria-hidden className="hidden grid-cols-[minmax(0,1fr)_112px_96px_136px] items-center gap-3 border-b border-ink-200 px-5 py-3 text-xs text-ink-600 sm:grid">
+    <div aria-hidden className="hidden grid-cols-[minmax(0,1fr)_96px_96px_196px] items-center gap-3 border-b border-ink-200 px-5 py-3 text-xs text-ink-600 md:grid">
       <span className="pl-7">公司与岗位</span>
       <span className="pr-4 text-right">投递日期</span>
       <span>当前进度</span>
@@ -174,6 +176,7 @@ export function ApplicationList({
               onDelete={() => onDelete(record)}
               onCopyUrl={() => onCopyUrl(record)}
               onTogglePin={() => onTogglePin(record)}
+              onDeliver={() => onDeliver(record)}
             />
           )
         }
@@ -199,6 +202,7 @@ export function ApplicationList({
                     onDelete={() => onDelete(record)}
                     onCopyUrl={() => onCopyUrl(record)}
                     onTogglePin={() => onTogglePin(record)}
+                    onDeliver={() => onDeliver(record)}
                   />
                 ))}
               </ul>

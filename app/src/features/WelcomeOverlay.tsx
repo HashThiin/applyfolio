@@ -48,7 +48,7 @@ export function WelcomeOverlay({ total, active, offers, onEnter }: WelcomeOverla
               <Medallion value={offers} label="Offer" />
             </div>
           ) : (
-            <p className="mt-7 text-sm leading-relaxed text-ink-600">投递簿还是空的。记下第一家公司，这一页就有了开始。</p>
+            <p className="mt-7 text-sm leading-relaxed text-ink-600">投递簿还是空的。点「投递」找到第一个岗位，这一页就有了开始。</p>
           )}
           <p className="af-welcome-note">投递、笔试、面试与一路推进，<br className="hidden sm:block" />都记在同一本簿子上。</p>
           <button type="button" onClick={onEnter} className="af-button-primary af-welcome-enter">

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Check, Loader2, Palette, Plus, X } from 'lucide-react'
 import { Drawer } from '@/components/Drawer'
+import { updateApplication } from '@/db/applications'
+import { analyzeJob } from '@/db/ai'
 import { QuestionPanel } from '../questions/QuestionPanel'
+import { AdvicePreview } from '../intents/AdvicePreview'
 import {
+  MIN_JD_LENGTH,
   PRESET_COLORS,
   STATUSES,
+  type Advice,
   type Application,
   type ApplicationInput,
 } from '@/db/schema'
@@ -81,6 +86,101 @@ function Field({ label, required, error, hint, children }: FieldProps) {
   )
 }
 
+/**
+ * 简历建议：首次分析在「收录意向」时进行；这里兜住两种情况——
+ * 当时 AI 还没配置好，或者想拿最新的简历再算一次。
+ */
+function AdviceSection({ record }: { record: Application }) {
+  const [advice, setAdvice] = useState<Advice | null>(record.advice ?? null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const jdText = record.jd_text?.trim() ?? ''
+  const analyzable = jdText.length >= MIN_JD_LENGTH
+
+  async function runAnalysis() {
+    if (busy || !analyzable) return
+    setBusy(true)
+    setError(null)
+    try {
+      const outcome = await analyzeJob({
+        jdText,
+        company: record.company,
+        role: record.role,
+      })
+      if (!outcome.ok) {
+        setError(outcome.message)
+        return
+      }
+      await updateApplication(record.id, {
+        advice: outcome.advice,
+        advice_at: new Date().toISOString(),
+      })
+      setAdvice(outcome.advice)
+    } catch {
+      setError('保存建议失败，请重试')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!advice) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm leading-relaxed text-ink-700">
+          {analyzable
+            ? '这条记录还没有简历建议。现在可以让 AI 拿你的简历和这份岗位要求比对一次。'
+            : '这条记录里没有岗位要求原文。可以先在「收录意向」里粘贴岗位要求并分析。'}
+        </p>
+        {analyzable && (
+          <button
+            type="button"
+            onClick={() => void runAnalysis()}
+            disabled={busy}
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-800 px-4 text-sm font-medium text-page transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {busy ? '分析中…' : '让 AI 分析这个岗位'}
+          </button>
+        )}
+        {error && <p className="text-xs leading-relaxed text-red-700">{error}</p>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <AdvicePreview advice={advice} title={`${record.company} · ${record.role}`} />
+      {jdText && (
+        <details className="rounded-lg border border-ink-200/80 bg-white p-3">
+          <summary className="cursor-pointer text-xs font-medium text-ink-700">
+            查看岗位要求原文
+          </summary>
+          <p className="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed text-ink-600">
+            {jdText}
+          </p>
+        </details>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs leading-relaxed text-ink-600">
+          建议由 AI 生成，仅作参考；改完简历再投命中率更高。
+        </p>
+        {analyzable && (
+          <button
+            type="button"
+            onClick={() => void runAnalysis()}
+            disabled={busy}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 text-xs text-ink-700 transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {busy ? '重新分析中…' : '按当前简历重新分析'}
+          </button>
+        )}
+      </div>
+      {error && <p className="text-xs leading-relaxed text-red-700">{error}</p>}
+    </div>
+  )
+}
+
 interface ApplicationFormProps {
   open: boolean
   initial: Application | null
@@ -101,7 +201,7 @@ export function ApplicationForm({
   const [draft, setDraft] = useState<Draft>(createEmpty)
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
-  const [tab, setTab] = useState<'questions' | 'edit'>('questions')
+  const [tab, setTab] = useState<'questions' | 'advice' | 'edit'>('questions')
 
   const initialSnapshot = useMemo(
     () => (initial ? toDraft(initial) : null),
@@ -182,7 +282,7 @@ export function ApplicationForm({
       onClose={handleClose}
       footer={
         <div className="flex items-center justify-end gap-2">
-          {initial && tab === 'questions' ? (
+          {initial && tab !== 'edit' ? (
             <button
               type="button"
               onClick={handleClose}
@@ -227,6 +327,20 @@ export function ApplicationForm({
           >
             题目 / 备注
           </button>
+          {(initial.advice || initial.jd_text?.trim()) && (
+            <button
+              type="button"
+              onClick={() => setTab('advice')}
+              aria-pressed={tab === 'advice'}
+              className={`min-h-11 flex-1 border-b-2 px-3 text-sm font-medium transition ${
+                tab === 'advice'
+                  ? 'border-brand-800 text-brand-800'
+                  : 'border-transparent text-ink-600 hover:text-ink-900'
+              }`}
+            >
+              简历建议
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setTab('edit')}
@@ -244,6 +358,8 @@ export function ApplicationForm({
 
       {initial && tab === 'questions' ? (
         <QuestionPanel applicationId={initial.id} userId={userId} />
+      ) : initial && tab === 'advice' ? (
+        <AdviceSection key={initial.id} record={initial} />
       ) : (
       <form
         className="space-y-4"
