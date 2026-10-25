@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowUpRight,
   ClipboardPaste,
@@ -31,11 +31,14 @@ import {
   SEARCH_ENGINES,
 } from '@/lib/jobSearch'
 import { parseJobPageText, pickUrlFromText } from '@/lib/clipboardJob'
+import type { ImportedJob } from '@/lib/jobImport'
 import { isSafeHttpUrl, normalizeUrl } from '@/lib/url'
 
 interface IntentPanelProps {
   open: boolean
   userId: string
+  /** 浏览器扩展送来的岗位（非空则打开面板后自动预填） */
+  imported?: ImportedJob | null
   onClose: () => void
   onCollected: (message: string) => void
   onOpenManual: () => void
@@ -71,7 +74,14 @@ function readStoredEngine(): string {
  * → 公司 / 岗位 / 岗位要求自动填好 → 用户扫一眼确认。
  * 抓不到（纯前端渲染、需要登录、403）时退到剪贴板：在岗位页 Ctrl+A / Ctrl+C 即可。
  */
-export function IntentPanel({ open, userId, onClose, onCollected, onOpenManual }: IntentPanelProps) {
+export function IntentPanel({
+  open,
+  userId,
+  imported = null,
+  onClose,
+  onCollected,
+  onOpenManual,
+}: IntentPanelProps) {
   const [keyword, setKeyword] = useState('')
   const [engineKey, setEngineKey] = useState<string>(readStoredEngine)
   const [pageUrl, setPageUrl] = useState('')
@@ -83,6 +93,8 @@ export function IntentPanel({ open, userId, onClose, onCollected, onOpenManual }
   const [notice, setNotice] = useState<string | null>(null)
   const [advice, setAdvice] = useState<Advice | null>(null)
   const [collectedLabel, setCollectedLabel] = useState('')
+  // 同一条导入只填一次，避免用户改过之后又被覆盖
+  const appliedImport = useRef<string | null>(null)
 
   // 每次打开都是新的意向：清空上一次的输入，避免串味
   useEffect(() => {
@@ -100,6 +112,29 @@ export function IntentPanel({ open, userId, onClose, onCollected, onOpenManual }
       setBusy(null)
     })
   }, [open])
+
+  // 浏览器扩展导入：打开面板后就着清空的表单填进去（放在重置之后，顺序敏感）
+  useEffect(() => {
+    if (!open || !imported) return
+    const token = `${imported.url}|${imported.company}|${imported.role}`
+    if (appliedImport.current === token) return
+    appliedImport.current = token
+    void Promise.resolve().then(() => {
+      if (imported.company) setCompany(imported.company)
+      if (imported.role) setRole(imported.role)
+      if (imported.jdText) setJd(imported.jdText.slice(0, MAX_JD_LENGTH))
+      if (imported.url) {
+        setJobUrl(imported.url)
+        setPageUrl(imported.url)
+      }
+      const label = [imported.company, imported.role].filter(Boolean).join(' · ')
+      setNotice(
+        label
+          ? `已从浏览器扩展导入「${label}」，核对一下就可以收录`
+          : '已从浏览器扩展导入页面内容，公司名与岗位名请确认一下',
+      )
+    })
+  }, [open, imported])
 
   function rememberEngine(key: string) {
     setEngineKey(key)
@@ -461,6 +496,21 @@ export function IntentPanel({ open, userId, onClose, onCollected, onOpenManual }
               抓不到（需要登录或纯前端渲染的站）就在岗位页按 Ctrl+A 全选、Ctrl+C 复制，再点下面的
               「读剪贴板」。
             </p>
+            <details className="mt-1.5 rounded-lg bg-ink-50/70 px-2.5 py-1.5 text-xs text-ink-700">
+              <summary className="cursor-pointer select-none font-medium text-brand-800">
+                装了扩展：在岗位页点一下，这里自动填好（不用粘网址）
+              </summary>
+              <ol className="mt-1.5 list-decimal space-y-0.5 pl-4 leading-relaxed">
+                <li>
+                  打开仓库里的 <code className="rounded bg-white px-1">app/extension</code> 目录
+                </li>
+                <li>
+                  <code className="rounded bg-white px-1">chrome://extensions</code> → 打开「开发者模式」→
+                  「加载已解压的扩展程序」选这个目录
+                </li>
+                <li>回到岗位页，点工具栏的 ApplyFolio 图标 →「收录到 ApplyFolio」</li>
+              </ol>
+            </details>
           </section>
 
           {/* ③ 收录意向 */}

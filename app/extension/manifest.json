@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "ApplyFolio 收录助手",
+  "version": "0.1.0",
+  "description": "在校园招聘官网的岗位页点一下，把公司、岗位、岗位要求与网址直接收进 ApplyFolio。",
+  "permissions": ["activeTab", "scripting"],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "收录这个岗位到 ApplyFolio",
+    "default_icon": { "192": "icons/icon-192.png" }
+  },
+  "icons": { "192": "icons/icon-192.png", "512": "icons/icon-512.png" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://join.qq.com/*",
+        "https://jobs.bytedance.com/*",
+        "https://talent.alibaba.com/*",
+        "https://career.huawei.com/*",
+        "https://zhaopin.meituan.com/*",
+        "https://campus.jd.com/*",
+        "https://campus.163.com/*",
+        "https://talent.baidu.com/*",
+        "https://careers.pinduoduo.com/*",
+        "https://hr.xiaomi.com/*",
+        "https://zhaopin.kuaishou.cn/*",
+        "https://jobs.bilibili.com/*"
+      ],
+      "js": ["sites.js", "extract.js", "encode.js", "panel.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

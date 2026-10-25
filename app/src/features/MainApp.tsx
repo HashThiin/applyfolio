@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Compass, LogOut, Send, UserRound } from 'lucide-react'
 import { Plate, Wordmark } from '@/components/Ornament'
@@ -31,6 +31,7 @@ import {
   useApplications,
 } from '@/features/applications/useApplications'
 import { supabase } from '@/lib/supabase'
+import { consumePendingImport, type ImportedJob } from '@/lib/jobImport'
 import { copyText } from '@/lib/url'
 
 export function MainApp() {
@@ -45,6 +46,8 @@ export function MainApp() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Application | null>(null)
   const [intentOpen, setIntentOpen] = useState(false)
+  // 浏览器扩展导入进来的岗位：非空时自动打开面板并预填
+  const [importedJob, setImportedJob] = useState<ImportedJob | null>(null)
 
   const [toast, setToast] = useState<ToastState | null>(null)
   const toastTimer = useRef<number | null>(null)
@@ -68,6 +71,20 @@ export function MainApp() {
   }
 
   const effectiveUid = uid
+
+  // 扩展导入：扩展打开的是 /?/#import=...，main.tsx 已把 token 存进 sessionStorage，
+  // 这里在登录态就绪后取出来，直接开面板并把字段填好。
+  useEffect(() => {
+    let alive = true
+    void consumePendingImport().then((job) => {
+      if (!alive || !job) return
+      setImportedJob(job)
+      setIntentOpen(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const { data: all, loading } = useAllApplications({ userId: effectiveUid })
   const rows = useApplications(all, { keyword, statuses, sortBy })
@@ -310,7 +327,11 @@ export function MainApp() {
       <IntentPanel
         open={intentOpen}
         userId={effectiveUid}
-        onClose={() => setIntentOpen(false)}
+        imported={importedJob}
+        onClose={() => {
+          setIntentOpen(false)
+          setImportedJob(null)
+        }}
         onCollected={(message) => showToast({ message }, 5000)}
         onOpenManual={openManualFromIntent}
       />
