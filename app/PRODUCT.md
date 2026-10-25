@@ -1,4 +1,4 @@
-# JobCompass
+# ApplyFolio
 
 <!-- impeccable:product-schema 1 -->
 
@@ -29,7 +29,7 @@ web
 
 ## Brand Commitments
 
-品牌名 JobCompass，中文名称校招投递记录簿。
+品牌名 ApplyFolio，不设中文名（2026-10-26 由 JobCompass / 校招投递记录本更名）。
 2026-10-25 用户确认本轮方向为「穆夏书册：纸张、深青、细金线，整体更精致克制」。
 此前设计约束来自 ../docs/2026-10-24-2215-穆夏艺术风格前端设计文档.md；在结构相对一致的前提下重设计视觉。
 

@@ -1,6 +1,6 @@
 ---
-name: "JobCompass — 穆夏书册"
-description: "纸张、深青、细金线，精致克制的校招投递记录簿。"
+name: "ApplyFolio — 穆夏书册"
+description: "纸张、深青、细金线，精致克制的求职投递工作台。"
 colors:
   brand-50: "#f0f4ef"
   brand-100: "#e1eae1"
@@ -107,7 +107,7 @@ components:
     padding: "4px"
 ---
 
-# Design System: JobCompass
+# Design System: ApplyFolio
 
 ## Overview
 

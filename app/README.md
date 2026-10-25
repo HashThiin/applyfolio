@@ -1,13 +1,14 @@
-# JobCompass · 校招投递记录本
+# ApplyFolio
 
-> 校招投递进度与笔试面试题目记录工具。Supabase 云端存储，多设备同步，可安装为桌面/手机应用。
+> 求职投递工作台：搜索岗位、收录意向、AI 简历建议、投递进度追踪。Supabase 云端存储，多设备同步，可安装为桌面/手机应用。
 
-- **云端版 v2.0**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
-- **优先级颜色标记**：红橙黄绿自定义色，一眼区分投递重要程度
+- **云端版 v2.1**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
+- **岗位与网址**：同公司下每个岗位各自一条记录、各自一个招聘页网址，为「按岗位抓取 JD → AI 建议」预留数据位
+- **优先级颜色标记**：红橙黄绿自定义色，编辑区与列表同一色阶，选中所见即列表所见
 - **题目记录**：每条投递可记笔试/面试题目，支持截图上传与放大查看
 - **个人主页**：账号信息、**自我评价**（云端保存，最多 1000 字）、登录状态与数据概览
 - **可安装 (PWA)**：浏览器地址栏一键"安装"成独立窗口应用
-- **当前版本：v2.0（已上线 https://jobcompass-silk.vercel.app ；2026-10-26 已发布最新版，含穆夏书册视觉与自我评价）**
+- **当前版本：v2.1（已上线 https://applyfolio-silk.vercel.app ；2026-10-26 品牌更名 ApplyFolio 并重新部署；旧域名 jobcompass-silk.vercel.app 仍指向同一部署，但登录态不互通）**
 
 ---
 
@@ -42,7 +43,7 @@ npm install         # 首次拉取依赖
 npm run dev         # 开发服务器 http://localhost:5173
 npm run build       # 生产构建：tsc -b && vite build → dist/（自动生成 PWA sw.js/manifest）
 npm run preview     # 预览构建产物：同样锁定 5173 端口
-npm test            # 单元测试：vitest run（当前 22 个用例）
+npm test            # 单元测试：vitest run（当前 37 个用例）
 npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 ```
 
@@ -52,7 +53,7 @@ npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 
 构建产物含 `manifest.webmanifest` 与 Service Worker：
 
-- **桌面 Chrome/Edge**：地址栏右侧出现安装图标 →「安装 JobCompass」→ 独立窗口 + 任务栏图标
+- **桌面 Chrome/Edge**：地址栏右侧出现安装图标 →「安装 ApplyFolio」→ 独立窗口 + 任务栏图标
 - **手机**：Safari/Chrome 菜单 →「添加到主屏幕」
 - **更新策略**：`registerType: 'autoUpdate'`，发新版后下次打开自动生效
 - **离线行为**：应用外壳可离线打开（登录态保留），但数据读写走 Supabase 需联网（API 请求已显式配置为不走缓存）
@@ -159,7 +160,7 @@ interface UserProfile {
 1. 用旧版数据的浏览器登录新版
 2. 顶部出现琥珀色「检测到本地旧数据」banner → 点击「开始迁移」
 3. 逐条写入 Supabase，旧 `note` 字段自动转为该投递的第一条题目记录
-4. 迁移完成自动清除本地 IndexedDB（`job-compass` 库），并在 localStorage 打标防止重复迁移
+4. 迁移完成自动清除本地 IndexedDB（v1.0 本地版的库名仍为 `job-compass`），并在 localStorage 打标防止重复迁移
 5. 也可点「稍后处理」跳过，刷新页面仍会再次提示（除非已打标）
 
 ---
