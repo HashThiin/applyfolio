@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
+.env*
+.ui-review/
+.impeccable/review/
+.impeccable/questions/
+.impeccable/mocks/
+.impeccable/brief-body.md
