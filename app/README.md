@@ -2,16 +2,17 @@
 
 > 求职投递工作台：搜索岗位、收录意向、AI 简历建议、投递进度追踪。Supabase 云端存储，多设备同步，可安装为桌面/手机应用。
 
-- **云端版 v3.1**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
+- **云端版 v3.2**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
 - **投递闭环**：主按钮「投递」→ 居中的「找岗位」面板 → 搜「企业名 + 校园招聘 官网」或点常用企业校招官网（新标签浏览）→ 把岗位页网址粘回来**自动抓取**公司/岗位/岗位要求 → 收录即落一条「投递」记录 → 列表点「已投出」进入初筛
 - **只去官网**：搜索引擎固定补「校园招聘 官网」，内置 12 家企业校招官网直达，不接招聘软件
+- **扩展一键收录（v3.2）**：装一个本地浏览器扩展，在岗位页点一下就把公司/岗位/岗位要求送进应用预填，不用再粘网址（校招官网是 SPA，服务端抓不到；详见 [`../docs/2026-10-26-0420-浏览器扩展收录助手.md`](../docs/2026-10-26-0420-浏览器扩展收录助手.md)）
 - **AI 简历建议**：Edge Function + DeepSeek 拿你的简历与岗位要求比对，给出匹配分、关键词、缺口与逐条改法
 - **岗位与网址**：同公司下每个岗位各自一条记录、各自一个招聘页网址
 - **优先级颜色标记**：红橙黄绿自定义色，编辑区与列表同一色阶，选中所见即列表所见
 - **题目记录**：每条投递可记笔试/面试题目，支持截图上传与放大查看
 - **个人主页**：账号信息、**自我评价**（最多 1000 字）、**简历**（私有桶上传 PDF/TXT/MD 或粘贴文本）、登录状态与数据概览
 - **可安装 (PWA)**：浏览器地址栏一键"安装"成独立窗口应用
-- **当前版本：v3.1（已上线 https://applyfolio-silk.vercel.app ；2026-10-26「找岗位」改为居中面板 + 服务端抓取。生效前需执行 006 迁移、**重新部署 analyze-job**（新增 scrape 动作）并配置 DEEPSEEK_API_KEY，详见 `../docs/2026-10-26-0345-找官网与自动抓取岗位.md`）**
+- **当前版本：v3.2（已上线 https://applyfolio-silk.vercel.app ；2026-10-26 新增本地浏览器扩展「收录助手」`app/extension/`，在岗位页就地提取岗位数据经 `#import=` 预填面板。v3.1 的「找岗位居中面板 + 服务端抓取」仍生效，但生效前需执行 006 迁移、**重新部署 analyze-job**（新增 scrape 动作）并配置 DEEPSEEK_API_KEY，详见 `../docs/2026-10-26-0345-找官网与自动抓取岗位.md`）**
 
 ---
 
@@ -68,7 +69,7 @@ npm install         # 首次拉取依赖
 npm run dev         # 开发服务器 http://localhost:5173
 npm run build       # 生产构建：tsc -b && vite build → dist/（自动生成 PWA sw.js/manifest）
 npm run preview     # 预览构建产物：同样锁定 5173 端口
-npm test            # 单元测试：vitest run（当前 53 个用例）
+npm test            # 单元测试：vitest run（当前 63 个用例）
 npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 ```
 
@@ -87,6 +88,31 @@ npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 
 ---
 
+## 浏览器扩展「收录助手」（可选，v3.2）
+
+校招官网（字节/腾讯/阿里/百度…）首屏是 SPA 空壳：服务端拿到的 HTML 里没有岗位文字，跨域 iframe 又读不到 DOM。所以「点一下就把岗位填好」只能靠跑在你自己浏览器里的扩展。
+
+**安装**（未打包，2 分钟，仅 Chrome / Edge）
+
+1. 地址栏进 `chrome://extensions` → 右上角打开「开发者模式」
+2. 点「加载已解压的扩展程序」→ 选本仓库的 `app/extension` 目录
+3. 打开任一校招**岗位详情页** → 右下角出现卡片（其它站点点工具栏图标也能唤出）
+4. 核对/修改公司、岗位、岗位要求 → 「收录到 ApplyFolio」→ 新标签打开应用，自动填好面板
+
+**权限与数据**
+
+| 项目 | 说明 |
+|---|---|
+| 申请权限 | 只有 `activeTab` + `scripting`；不申请「读取所有网站数据」 |
+| 自动注入 | 仅 `manifest.json` 里列的 12 家企业校招域名（`content_scripts`） |
+| 其它站点 | 由用户点工具栏图标触发 `activeTab` 后注入，平时不生效 |
+| 数据流向 | 页面 → 扩展 → `#import=<base64url(gzip(json))>` → 应用表单。**不经过任何服务器**（hash 不进 HTTP 请求、不进 Vercel 日志） |
+| 落库 | 仍走应用原有的 `applications` 插入 + AI 建议，扩展不持有 Supabase 凭证 |
+
+**已知边界**：12 家的选择器是候选列表、未逐站真机校准，官网改版后可能退回「正文最大块」（带导航噪声）——首次用请点卡片里的「复制」核对，或直接在应用表单里改；本地调试要把 `extension/panel.js` 顶部 `APP_ORIGIN` 改成 `http://localhost:5173` 再重载扩展。
+
+---
+
 ## 功能清单
 
 | # | 分类 | 功能 |
@@ -96,6 +122,7 @@ npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 | 2.1 | 账号 | 个人主页 `/me`：账号信息、**自我评价**（1000 字内，保存到云端）、**简历原件与简历文本**、登录状态与数据概览 |
 | 3 | 录入 | 主按钮「投递」打开**居中**的「找岗位」面板：关键词自动拼「{企业} 校园招聘 官网」交给必应/百度/Google，或点 12 家常用企业校招官网直达，一律新标签打开（不接招聘软件） |
 | 3.1 | 录入 | **自动抓取岗位**：粘贴岗位页网址 → 服务端抓 JSON-LD/og/正文 → 自动填好公司、岗位、岗位要求、岗位网址；抓不到时可读剪贴板（Ctrl+A / Ctrl+C 的整页文字） |
+| 3.2 | 录入 | **扩展一键收录**：在岗位页点扩展图标 → 就地提取并预填面板（`app/extension/`，数据经 `#import=` hash 传输，不经过服务器） |
 | 4 | 录入 | **收录意向**：确认后生成一条「投递」记录（AI 可用时同时给出简历建议） |
 | 4.1 | AI | **简历建议**：匹配分、一句话结论、已具备优势、未覆盖要求、该出现的关键词、逐条改法、下一步；存 `applications.advice` |
 | 4.2 | AI | 降级：Function 未部署 / 未配 Key / 简历缺失 / JD 过短 / 上游超时 都给可读原因，且不阻断「只收录」 |
@@ -239,6 +266,13 @@ app/
 ├─ scripts/
 │  ├─ gen-icons.ps1            # GDI+ 绘制 PWA 图标
 │  └─ setup-v3.ps1             # v3.1 上线脚本：006 迁移 + 部署 analyze-job + 写 DEEPSEEK_API_KEY + 线上校验
+├─ extension/                  # ★ v3.2 浏览器扩展（MV3，开发者模式加载；不进 npm 构建）
+│  ├─ manifest.json            # 权限只有 activeTab + scripting；12 家校招站 content_scripts
+│  ├─ sites.js                 # 12 家站点的候选选择器 + 公司名兜底
+│  ├─ extract.js               # 提取：JSON-LD → 站点规则 → og/title → 正文最大块
+│  ├─ encode.js                # base64url(gzip(json))，必须与 src/lib/jobImport.ts 一致
+│  ├─ panel.js                 # 右下角 Shadow DOM 卡片（全 createElement，无 innerHTML）
+│  └─ background.js            # 工具栏点击 → scripting.executeScript 注入
 ├─ public/                     # favicon.svg、pwa-192/512.png、apple-touch-icon.png
 ├─ src/
 │  ├─ main.tsx                 # BrowserRouter 入口
@@ -257,9 +291,9 @@ app/
 │  │  ├─ questions.ts          # 题目 CRUD + Storage 上传/签名
 │  │  ├─ profiles.ts           # 用户档案、简历上传/删除/元数据
 │  │  └─ ai.ts                 # analyzeJob：调 Edge Function + 错误码归一
-│  ├─ lib/                     # supabase 客户端、date/url/color/jobSearch/clipboardJob 纯函数、useDialog、webmail
+│  ├─ lib/                     # supabase 客户端、date/url/color/jobSearch/clipboardJob/jobImport 纯函数、useDialog、webmail
 │  ├─ components/              # Drawer/Modal/Toast/Toolbar/StatsBar/StatusBadge/EmptyState/Ornament/WebmailMenu
-│  └─ test/                    # 纯函数单测（53 个用例：url / date / filterAndSort / jobSearch / clipboardJob）
+│  └─ test/                    # 纯函数单测（63 个用例：url / date / filterAndSort / jobSearch / clipboardJob / jobImport）
 └─ dist/                       # 构建产物（含 sw.js、manifest.webmanifest）
 ```
 
@@ -270,6 +304,7 @@ app/
 | 文件 | 内容 |
 |---|---|
 | `../工作进程.md` | 交接入口（会话 / IDE 切换时先读它） |
+| `../docs/2026-10-26-0420-浏览器扩展收录助手.md` | v3.2 扩展收录助手：为什么不内嵌、MV3 设计、`#import=` 通道、安装与边界 |
 | `../docs/2026-10-26-0345-找官网与自动抓取岗位.md` | v3.1 找岗位改版：只去企业校招官网 + 服务端抓取岗位信息 |
 | `../docs/2026-10-26-0245-投递闭环与AI简历建议.md` | v3.0 投递闭环：006 迁移、Edge Function、前端改动、上线前置 |
 | `../docs/2026-10-26-0225-ApplyFolio更名与逐岗位网址.md` | 品牌更名与逐岗位独立网址 |
