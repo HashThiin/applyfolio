@@ -1,13 +1,18 @@
 // Supabase Edge Function: analyze-job
 //
-// 作用：读当前用户的简历（优先用户粘贴的文本，否则读 Storage 里的原件）+ 本次岗位要求，
-//      调用 DeepSeek 产出结构化简历建议。密钥只存在服务端。
+// 两个动作，共用一次部署：
+//   { action: 'analyze' }（默认）：读当前用户的简历（优先粘贴的文本，否则 Storage 原件）+ 岗位要求，
+//                                 调 DeepSeek 产出结构化简历建议。
+//   { action: 'scrape', url }：    服务端抓取岗位页，抽出公司 / 岗位 / 岗位要求。
+//                                 浏览器直连别人的站会被 CORS 拦，所以只能在这里抓。
 //
 // 部署：
 //   supabase functions deploy analyze-job
 //   supabase secrets set DEEPSEEK_API_KEY=sk-xxx
-// 未配置密钥时返回 503 AI_NOT_CONFIGURED，前端据此降级为「只收录、不分析」。
+// 未配置密钥时 analyze 返回 503 AI_NOT_CONFIGURED（前端降级为「只收录」）；
+// scrape 不受影响，只是少了「用模型从正文里挑字段」这一层增强。
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { ScrapeFailure, scrapeJobPage } from './scrape.ts'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -165,6 +170,22 @@ Deno.serve(async (req: Request) => {
     return fail('BAD_REQUEST', '请求体不是合法 JSON', 400)
   }
 
+  // ── 动作一：抓取岗位页 ──────────────────────────────────────────
+  if (asString(payload.action, 20) === 'scrape') {
+    const targetUrl = asString(payload.url, 500)
+    if (!targetUrl) return fail('SCRAPE_BAD_URL', '先粘贴岗位页网址', 400)
+
+    try {
+      const job = await scrapeJobPage(targetUrl, Deno.env.get('DEEPSEEK_API_KEY') ?? null)
+      return json({ job })
+    } catch (error) {
+      if (error instanceof ScrapeFailure) return fail(error.code, error.message, error.status)
+      console.error('scrape failed', error)
+      return fail('SCRAPE_FAILED', '抓取失败，请改用「复制整页文字」', 502)
+    }
+  }
+
+  // ── 动作二（默认）：简历 vs 岗位要求 ────────────────────────────
   const jdText = asString(payload.jdText, MAX_JD_LENGTH)
   if (jdText.length < MIN_JD_LENGTH) {
     return fail('JD_TOO_SHORT', `岗位要求至少 ${MIN_JD_LENGTH} 字，粘贴完整一些再分析`, 422)

@@ -36,6 +36,44 @@ export async function analyzeJob(input: AnalyzeInput): Promise<AnalyzeOutcome> {
   }
 }
 
+/** 服务端抓回来的岗位信息；字段可能不全，缺的由用户补 */
+export interface ScrapedJob {
+  company: string
+  role: string
+  jdText: string
+  title: string
+  url: string
+  source: 'json-ld' | 'ai' | 'meta' | 'text'
+  aiEnhanced: boolean
+}
+
+export type ScrapeOutcome = { ok: true; job: ScrapedJob } | { ok: false; code: string; message: string }
+
+/**
+ * 让 Edge Function 去抓岗位页（浏览器直连别人的站会被 CORS 拦）。
+ * 抓不到不是错误路径的终点：调用方据此提示「复制整页文字」。
+ */
+export async function scrapeJobPage(url: string): Promise<ScrapeOutcome> {
+  try {
+    const { data, error } = await supabase.functions.invoke('analyze-job', {
+      body: { action: 'scrape', url },
+    })
+    if (error) {
+      const { code, message } = await readError(error)
+      return { ok: false, code, message }
+    }
+    const job = (data as { job?: ScrapedJob } | null)?.job
+    if (!job) return { ok: false, code: 'SCRAPE_EMPTY', message: '没抓到内容，请改用「复制整页文字」' }
+    return { ok: true, job }
+  } catch {
+    return {
+      ok: false,
+      code: 'SCRAPE_UNAVAILABLE',
+      message: '无法连接抓取服务（Edge Function 需要重新部署后才能抓取）',
+    }
+  }
+}
+
 /** FunctionsHttpError 把响应放在 context 里，错误码与文案都由 Edge Function 给出 */
 async function readError(error: unknown): Promise<{ code: string; message: string }> {
   const context = (error as { context?: Response }).context

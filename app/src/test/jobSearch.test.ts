@@ -1,53 +1,77 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildCampusQuery,
+  CAMPUS_SITES,
+  DEFAULT_SEARCH_ENGINE,
+  filterCampusSites,
+  findEngine,
   isSearchableKeyword,
-  JOB_SEARCH_SOURCES,
   MIN_SEARCH_KEYWORD_LENGTH,
+  SEARCH_ENGINES,
 } from '@/lib/jobSearch'
 
-describe('JOB_SEARCH_SOURCES', () => {
-  it('包含国内主流招聘站与通用搜索', () => {
-    const keys = JOB_SEARCH_SOURCES.map((source) => source.key)
-    expect(keys).toContain('boss')
-    expect(keys).toContain('liepin')
-    expect(keys).toContain('google')
-    expect(keys.length).toBeGreaterThanOrEqual(4)
+describe('SEARCH_ENGINES', () => {
+  it('只留搜索引擎，不再指向招聘软件', () => {
+    const keys = SEARCH_ENGINES.map((engine) => engine.key)
+    expect(keys).toEqual(['bing', 'baidu', 'google'])
+    const labels = SEARCH_ENGINES.map((engine) => engine.label).join()
+    expect(labels).not.toMatch(/BOSS|猎聘|前程无忧|智联/)
   })
 
-  it('每个站点都生成可用的 https 搜索地址', () => {
-    for (const source of JOB_SEARCH_SOURCES) {
-      const url = source.build('前端开发 实习')
+  it('每个引擎都生成可用的 https 搜索地址', () => {
+    for (const engine of SEARCH_ENGINES) {
+      const url = engine.build(buildCampusQuery('腾讯'))
       expect(url.startsWith('https://')).toBe(true)
       expect(() => new URL(url)).not.toThrow()
     }
   })
 
-  it('关键词被编码，空格不会截断地址', () => {
-    const boss = JOB_SEARCH_SOURCES.find((source) => source.key === 'boss')!
-    const url = boss.build('后端开发 实习')
-    expect(url).not.toContain(' ')
-    expect(url).toContain(encodeURIComponent('后端开发 实习'))
+  it('默认引擎存在', () => {
+    expect(findEngine(DEFAULT_SEARCH_ENGINE)).toBeDefined()
+    expect(findEngine('boss')).toBeUndefined()
+  })
+})
+
+describe('buildCampusQuery', () => {
+  it('把查询补成「企业 + 校园招聘 官网」', () => {
+    expect(buildCampusQuery('  字节跳动 ')).toBe('字节跳动 校园招聘 官网')
   })
 
-  it('关键词两端空格在拼接前被去掉', () => {
-    const google = JOB_SEARCH_SOURCES.find((source) => source.key === 'google')!
-    expect(google.build('  数据分析  ')).toBe(
-      `https://www.google.com/search?q=${encodeURIComponent('数据分析 招聘')}`,
-    )
+  it('关键词里的空格被编码，不会截断地址', () => {
+    const bing = findEngine('bing')!
+    const url = bing.build(buildCampusQuery('华为 算法'))
+    expect(url).not.toContain(' ')
+    expect(url).toContain(encodeURIComponent('华为 算法 校园招聘 官网'))
+  })
+})
+
+describe('CAMPUS_SITES', () => {
+  it('全部是可解析的 https 地址', () => {
+    expect(CAMPUS_SITES.length).toBeGreaterThanOrEqual(10)
+    for (const site of CAMPUS_SITES) {
+      expect(site.name.length).toBeGreaterThan(0)
+      expect(site.url.startsWith('https://')).toBe(true)
+      expect(() => new URL(site.url)).not.toThrow()
+    }
+  })
+
+  it('按企业名过滤，输入为空时返回全部', () => {
+    expect(filterCampusSites('')).toHaveLength(CAMPUS_SITES.length)
+    expect(filterCampusSites('腾讯').map((site) => site.name)).toEqual(['腾讯'])
+    expect(filterCampusSites('字节跳动前端')).toHaveLength(1)
+    expect(filterCampusSites('不存在的公司')).toHaveLength(0)
   })
 })
 
 describe('isSearchableKeyword', () => {
   it('达到最小长度即可搜索', () => {
+    expect(isSearchableKeyword('腾讯')).toBe(true)
     expect(isSearchableKeyword('前'.repeat(MIN_SEARCH_KEYWORD_LENGTH))).toBe(true)
   })
 
-  it('少一个字就不打开搜索页', () => {
+  it('少一个字或纯空格都不打开搜索页', () => {
     expect(isSearchableKeyword('前')).toBe(false)
-    expect(MIN_SEARCH_KEYWORD_LENGTH).toBe(2)
-  })
-
-  it('纯空格不算有效关键词', () => {
     expect(isSearchableKeyword('   ')).toBe(false)
+    expect(MIN_SEARCH_KEYWORD_LENGTH).toBe(2)
   })
 })

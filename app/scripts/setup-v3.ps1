@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  ApplyFolio v3.0 上线三件事：执行 006 迁移、部署 analyze-job、配置 DEEPSEEK_API_KEY。
+  ApplyFolio v3.1 上线三件事：执行 006 迁移、部署 analyze-job（含 scrape 动作）、配置 DEEPSEEK_API_KEY。
 
 .DESCRIPTION
   只依赖两样外部条件：
@@ -292,6 +292,7 @@ order by polname
     if ($fn) {
         if ($fn.status -eq 'ACTIVE') { Write-Ok "analyze-job 已部署（status ACTIVE，version $($fn.version)）" }
         else { Write-Note "analyze-job 存在但 status = $($fn.status)" }
+        Write-Note '若要「抓取」可用，函数必须是 v3.1 代码：只跑 -Step verify 不会更新版本，请至少跑一次 -Step function'
         if ($fn.verify_jwt -eq $false) { Write-Note 'verify_jwt = false：函数会自己校验 Bearer，可接受；但不建议再关其它函数的 JWT' }
     }
     else { Write-Fail 'analyze-job 未部署' }
@@ -307,7 +308,7 @@ order by polname
 # 主流程
 # ------------------------------------------------------------------
 Write-Host ''
-Write-Host 'ApplyFolio v3.0 上线脚本' -ForegroundColor White
+Write-Host 'ApplyFolio v3.1 上线脚本' -ForegroundColor White
 Write-Host "  项目根目录 $script:AppRoot"
 if ($script:DryRun) { Write-Host '  模式：DRY RUN（不调用任何接口）' -ForegroundColor Yellow }
 
@@ -348,5 +349,5 @@ if ($script:Failed -gt 0) {
     exit 2
 }
 Write-Host '全部完成。' -ForegroundColor Green
-Write-Host '  接下去：打开 https://applyfolio-silk.vercel.app → 个人中心上传简历 → 点「投递」收录一个岗位试试。' -ForegroundColor Gray
-Write-Host '  验收清单见 工作进程.md 第 6.5 节第 17/18 步。' -ForegroundColor Gray
+Write-Host '  接下去：打开 https://applyfolio-silk.vercel.app → 点「投递」→ 粘一个校招岗位网址 → 点「抓取」试试。' -ForegroundColor Gray
+Write-Host '  验收清单见 工作进程.md 第 6.5 节第 18/19/21 步。' -ForegroundColor Gray

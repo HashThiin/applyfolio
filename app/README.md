@@ -2,15 +2,16 @@
 
 > 求职投递工作台：搜索岗位、收录意向、AI 简历建议、投递进度追踪。Supabase 云端存储，多设备同步，可安装为桌面/手机应用。
 
-- **云端版 v3.0**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
-- **投递闭环**：主按钮「投递」→ 搜岗位/贴网址（新标签浏览招聘站）→ 回来粘贴岗位要求 → 收录意向即落一条「投递」记录 → 列表点「已投出」进入初筛
+- **云端版 v3.1**：邮箱注册登录，数据存 Supabase PostgreSQL，换浏览器/设备不丢数据
+- **投递闭环**：主按钮「投递」→ 居中的「找岗位」面板 → 搜「企业名 + 校园招聘 官网」或点常用企业校招官网（新标签浏览）→ 把岗位页网址粘回来**自动抓取**公司/岗位/岗位要求 → 收录即落一条「投递」记录 → 列表点「已投出」进入初筛
+- **只去官网**：搜索引擎固定补「校园招聘 官网」，内置 12 家企业校招官网直达，不接招聘软件
 - **AI 简历建议**：Edge Function + DeepSeek 拿你的简历与岗位要求比对，给出匹配分、关键词、缺口与逐条改法
 - **岗位与网址**：同公司下每个岗位各自一条记录、各自一个招聘页网址
 - **优先级颜色标记**：红橙黄绿自定义色，编辑区与列表同一色阶，选中所见即列表所见
 - **题目记录**：每条投递可记笔试/面试题目，支持截图上传与放大查看
 - **个人主页**：账号信息、**自我评价**（最多 1000 字）、**简历**（私有桶上传 PDF/TXT/MD 或粘贴文本）、登录状态与数据概览
 - **可安装 (PWA)**：浏览器地址栏一键"安装"成独立窗口应用
-- **当前版本：v3.0（已上线 https://applyfolio-silk.vercel.app ；2026-10-26 完成投递闭环。生效前需执行 006 迁移、部署 analyze-job 并配置 DEEPSEEK_API_KEY，详见 `../docs/2026-10-26-0245-投递闭环与AI简历建议.md`）**
+- **当前版本：v3.1（已上线 https://applyfolio-silk.vercel.app ；2026-10-26「找岗位」改为居中面板 + 服务端抓取。生效前需执行 006 迁移、**重新部署 analyze-job**（新增 scrape 动作）并配置 DEEPSEEK_API_KEY，详见 `../docs/2026-10-26-0345-找官网与自动抓取岗位.md`）**
 
 ---
 
@@ -27,35 +28,27 @@
 2. Dashboard → **Storage** → 创建私有 Bucket：`question-images`（`resumes` 由 006 自动创建）
 3. Dashboard → **Authentication → Providers → Email** → 开发期关闭 "Confirm email"
 4. Dashboard → **Database → Replication** → 勾选 `applications` 表（Realtime 生效）
-5. **Edge Function（v3.0，可选但推荐）**
+5. **Edge Function（v3.1，可选但推荐）**
    ```powershell
-   supabase link --project-ref <项目 ref>
-   supabase functions deploy analyze-job
-   supabase secrets set DEEPSEEK_API_KEY=sk-xxxx
+   cd app
+   npx supabase@latest login
+   npx supabase@latest link --project-ref <项目 ref>
+   npx supabase@latest functions deploy analyze-job
+   npx supabase@latest secrets set DEEPSEEK_API_KEY=sk-xxxx
    ```
-   不配置也能用：点「收录并分析」会提示未配置，并按「只收录」保存记录。
+   一个函数两个动作：`scrape`（抓取岗位页）与 `analyze`（AI 简历建议）。
+   不配置 Key 也能用：抓取照常（只是少了 AI 整理那层），点「收录并分析」会提示未配置并按「只收录」保存。
+   v3.0 → v3.1 升级必须**重新 deploy 一次**，否则新面板的「抓取」会提示需要重新部署。
 
-### 1.1 用脚本一次做完（推荐）
-
-上面的 006 迁移 + 部署函数 + 写密钥，可以用一个脚本跑完（不需要 psql、不需要数据库密码、不需要 Docker）：
-
-```powershell
-cd app
-powershell -ExecutionPolicy Bypass -File .\scripts\setup-v3.ps1
-```
-
-- 只依赖一个 **Supabase Personal Access Token**（Dashboard → 右上头像 → Account → Access Tokens），脚本提示时粘贴即可，只存在本进程内存，不落盘
-- 006 通过 Management API 直接执行 SQL 文件，**绕过 `supabase db push` 的迁移历史**问题（本地没建过历史表时 push 会从 001 重跑并报「表已存在」）；006 本身幂等，可重复执行
-- 函数与密钥走官方 CLI（`npx supabase@latest`，`--use-api` 由服务端打包）
-- 最后自动校验：字段 7 个 / `resumes` 私有桶 / 桶策略 4 条 / `analyze-job` ACTIVE / 密钥存在
-
-| 参数 | 用途 |
-|---|---|
-| `-Step sql` \| `function` \| `secret` \| `verify` | 只做其中一步（默认 `all`） |
-| `-DryRun` | 只打印将要执行的动作，不调接口（先看清楚再跑） |
-| `-ProjectRef` | 覆盖 ref；默认从 `.env.local` 的 `VITE_SUPABASE_URL` 解析 |
-| `$env:SUPABASE_ACCESS_TOKEN` | 预先设好 token 就不用交互输入 |
-| `-Proxy http://127.0.0.1:7897` | 访问 `api.supabase.com` 需要走代理时用 |
+   **一条命令替代上面全部**（含 006 迁移与线上回读校验，只需一个 Supabase Personal Access Token，免 psql / 免数据库密码 / 免 Docker）：
+   ```powershell
+   cd app
+   powershell -ExecutionPolicy Bypass -File .\scripts\setup-v3.ps1
+   ```
+   - token 在 Dashboard → 右上头像 → Account → Access Tokens 生成（`sbp_...`），脚本提示时粘贴，只存本进程内存
+   - `-Step sql|function|secret|verify` 单跑某一步；`-DryRun` 空跑看清将做什么；`-Proxy http://127.0.0.1:7897` 给 Management API 走代理
+   - 必须在**自己开的 PowerShell 窗口**里跑：它会交互式读取 token 与 DeepSeek Key，自动化/无交互会话里会卡在输入
+   - 006 走 Management API 直接执行 SQL，绕开 `supabase db push` 在无迁移历史表时从 001 重跑报「表已存在」的问题
 
 ### 2. 配置环境变量
 
@@ -75,7 +68,7 @@ npm install         # 首次拉取依赖
 npm run dev         # 开发服务器 http://localhost:5173
 npm run build       # 生产构建：tsc -b && vite build → dist/（自动生成 PWA sw.js/manifest）
 npm run preview     # 预览构建产物：同样锁定 5173 端口
-npm test            # 单元测试：vitest run（当前 44 个用例）
+npm test            # 单元测试：vitest run（当前 53 个用例）
 npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 ```
 
@@ -101,8 +94,9 @@ npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 | 1 | 账号 | 邮箱 + 密码注册 / 登录（Supabase Auth），路由守卫未登录跳转 |
 | 2 | 账号 | 退出登录；多设备登录同一账号数据同步 |
 | 2.1 | 账号 | 个人主页 `/me`：账号信息、**自我评价**（1000 字内，保存到云端）、**简历原件与简历文本**、登录状态与数据概览 |
-| 3 | 录入 | 主按钮「投递」打开「找岗位」面板：关键词跳 BOSS直聘/猎聘/前程无忧/智联/Google 搜索结果，或直接粘贴岗位网址，均在新标签打开 |
-| 4 | 录入 | **收录意向**：填公司 + 岗位 + 岗位网址 + 粘贴岗位要求 → 一次生成一条「投递」记录（AI 可用时同时给出简历建议） |
+| 3 | 录入 | 主按钮「投递」打开**居中**的「找岗位」面板：关键词自动拼「{企业} 校园招聘 官网」交给必应/百度/Google，或点 12 家常用企业校招官网直达，一律新标签打开（不接招聘软件） |
+| 3.1 | 录入 | **自动抓取岗位**：粘贴岗位页网址 → 服务端抓 JSON-LD/og/正文 → 自动填好公司、岗位、岗位要求、岗位网址；抓不到时可读剪贴板（Ctrl+A / Ctrl+C 的整页文字） |
+| 4 | 录入 | **收录意向**：确认后生成一条「投递」记录（AI 可用时同时给出简历建议） |
 | 4.1 | AI | **简历建议**：匹配分、一句话结论、已具备优势、未覆盖要求、该出现的关键词、逐条改法、下一步；存 `applications.advice` |
 | 4.2 | AI | 降级：Function 未部署 / 未配 Key / 简历缺失 / JD 过短 / 上游超时 都给可读原因，且不阻断「只收录」 |
 | 5 | 录入 | 手动新增投递（右侧抽屉表单，投递日期默认今天；面板内「手动记一条」也进这里） |
@@ -123,7 +117,7 @@ npm run lint        # 代码检查：oxlint（应保持 0 warning 0 error）
 | 20 | 删除 | 删除后 6 秒内可撤销（Toast） |
 | 21 | 邮箱 | 快捷邮箱按钮：先选服务商（12 家），再新标签打开 |
 | 22 | 同步 | Supabase Realtime：多标签/多设备数据变更自动刷新 |
-| 23 | 安全 | URL 拒绝 `javascript:` 等伪协议；RLS 保证只能读写自己的数据；AI 密钥只在 Edge Function |
+| 23 | 安全 | URL 拒绝 `javascript:` 等伪协议；RLS 保证只能读写自己的数据；AI 密钥与抓取都只在 Edge Function（拒绝内网/回环地址） |
 | 24 | PWA | 可安装为独立应用，自动更新 |
 
 ---
@@ -241,10 +235,10 @@ app/
 ├─ .env.local                  # Supabase URL / ANON KEY（gitignore）
 ├─ supabase/
 │  ├─ migrations/              # SQL：001 建表 / 002 tier→color / 003 状态管线 / 004 置顶 / 005 用户档案 / 006 简历与 AI 建议
-│  └─ functions/analyze-job/   # Edge Function（Deno）：读简历 + 岗位要求 → DeepSeek
+│  └─ functions/analyze-job/   # Edge Function（Deno）：scrape 抓岗位页 / analyze 出简历建议
 ├─ scripts/
 │  ├─ gen-icons.ps1            # GDI+ 绘制 PWA 图标
-│  └─ setup-v3.ps1             # v3.0 上线脚本：006 + 部署 analyze-job + 写 DEEPSEEK_API_KEY + 校验
+│  └─ setup-v3.ps1             # v3.1 上线脚本：006 迁移 + 部署 analyze-job + 写 DEEPSEEK_API_KEY + 线上校验
 ├─ public/                     # favicon.svg、pwa-192/512.png、apple-touch-icon.png
 ├─ src/
 │  ├─ main.tsx                 # BrowserRouter 入口
@@ -263,9 +257,9 @@ app/
 │  │  ├─ questions.ts          # 题目 CRUD + Storage 上传/签名
 │  │  ├─ profiles.ts           # 用户档案、简历上传/删除/元数据
 │  │  └─ ai.ts                 # analyzeJob：调 Edge Function + 错误码归一
-│  ├─ lib/                     # supabase 客户端、date/url/jobSearch/color 纯函数、useDialog、webmail
+│  ├─ lib/                     # supabase 客户端、date/url/color/jobSearch/clipboardJob 纯函数、useDialog、webmail
 │  ├─ components/              # Drawer/Modal/Toast/Toolbar/StatsBar/StatusBadge/EmptyState/Ornament/WebmailMenu
-│  └─ test/                    # 纯函数单测（44 个用例：url / date / filterAndSort / jobSearch）
+│  └─ test/                    # 纯函数单测（53 个用例：url / date / filterAndSort / jobSearch / clipboardJob）
 └─ dist/                       # 构建产物（含 sw.js、manifest.webmanifest）
 ```
 
@@ -276,6 +270,7 @@ app/
 | 文件 | 内容 |
 |---|---|
 | `../工作进程.md` | 交接入口（会话 / IDE 切换时先读它） |
+| `../docs/2026-10-26-0345-找官网与自动抓取岗位.md` | v3.1 找岗位改版：只去企业校招官网 + 服务端抓取岗位信息 |
 | `../docs/2026-10-26-0245-投递闭环与AI简历建议.md` | v3.0 投递闭环：006 迁移、Edge Function、前端改动、上线前置 |
 | `../docs/2026-10-26-0225-ApplyFolio更名与逐岗位网址.md` | 品牌更名与逐岗位独立网址 |
 | `../docs/2026-10-25-穆夏书册重设计.md` | 视觉重设计（穆夏书册令牌） |
